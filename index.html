@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canada · NDT / Oil &amp; Gas Contacts</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root { --bg:#0c0f18;--surface:#141720;--card:#1c1f2e;--border:#272b3f;--accent:#f97316;--accent2:#38bdf8;--accent3:#a78bfa;--green:#34d399;--red:#f87171;--yellow:#fbbf24;--text:#e8eaf0;--muted:#7b7f9a;--tag-ndt:#a78bfa;--tag-oilgas:#f97316; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .header-left{display:flex;align-items:center;gap:14px;}
+  .flag{font-size:24px;line-height:1;}
+  .header h1{font-size:17px;font-weight:700;}
+  .header-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .header-pills{display:flex;gap:6px;}
+  .pill{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+  .pill-canada{background:rgba(248,113,19,.15);color:var(--accent);border:1px solid rgba(248,113,19,.3);}
+  .pill-ndt{background:rgba(167,139,250,.15);color:var(--accent3);border:1px solid rgba(167,139,250,.3);}
+  .pill-og{background:rgba(56,189,248,.15);color:var(--accent2);border:1px solid rgba(56,189,248,.3);}
+  .export-btn{background:var(--accent);color:white;border:none;padding:8px 16px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .2s;white-space:nowrap;}
+  .export-btn:hover{opacity:.85;}
+  .main{padding:22px 28px;max-width:1600px;margin:0 auto;}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+  .stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;}
+  .stat-value{font-size:26px;font-weight:700;line-height:1;}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:5px;}
+  .c-orange{color:var(--accent);}.c-blue{color:var(--accent2);}.c-purple{color:var(--accent3);}.c-green{color:var(--green);}.c-yellow{color:var(--yellow);}
+  .charts-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;margin-bottom:22px;}
+  .charts-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+  .chart-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+  .chart-wrap{position:relative;height:200px;}
+  .chart-wrap-tall{position:relative;height:250px;}
+  .filters-bar{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:18px;}
+  .filters-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .filters-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+  .filters-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  select,input[type=text]{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;outline:none;transition:border-color .2s;}
+  select:focus,input[type=text]:focus{border-color:var(--accent);}
+  input[type=text]{width:260px;}
+  .filter-group{display:flex;align-items:center;gap:5px;}
+  .filter-label{font-size:11px;color:var(--muted);white-space:nowrap;}
+  .reset-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 13px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .15s;}
+  .reset-btn:hover{border-color:var(--accent);color:var(--text);}
+  .count-badge{background:var(--accent);color:white;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+  .table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .table-header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+  .table-header-title{font-weight:600;font-size:15px;}
+  .table-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;min-width:1000px;}
+  thead th{background:var(--surface);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;}
+  thead th:hover{color:var(--text);}
+  thead th.sort-asc span::after{content:" ▲";color:var(--accent);}
+  thead th.sort-desc span::after{content:" ▼";color:var(--accent);}
+  tbody tr{border-bottom:1px solid rgba(39,43,63,.7);transition:background .1s;cursor:pointer;}
+  tbody tr:hover{background:rgba(249,115,22,.05);}
+  tbody tr:last-child{border-bottom:none;}
+  td{padding:10px 13px;vertical-align:middle;}
+  .name-cell{font-weight:600;white-space:nowrap;}
+  .company-link{color:var(--accent2);text-decoration:none;font-weight:500;}
+  .company-link:hover{text-decoration:underline;}
+  .email-mono{font-family:monospace;font-size:12px;color:var(--text);text-decoration:none;}
+  .email-mono:hover{color:var(--accent2);}
+  .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+  .b-clevel{background:rgba(249,115,22,.18);color:var(--accent);}
+  .b-vp{background:rgba(56,189,248,.18);color:var(--accent2);}
+  .b-director{background:rgba(167,139,250,.18);color:var(--accent3);}
+  .b-manager{background:rgba(251,191,36,.18);color:var(--yellow);}
+  .b-other{background:rgba(123,127,154,.15);color:var(--muted);}
+  .b-valid{background:rgba(52,211,153,.15);color:var(--green);}
+  .b-invalid{background:rgba(248,113,113,.15);color:var(--red);}
+  .b-acceptall{background:rgba(251,191,36,.15);color:var(--yellow);}
+  .b-ndt{background:rgba(167,139,250,.15);color:var(--accent3);border:1px solid rgba(167,139,250,.25);}
+  .b-og{background:rgba(249,115,22,.12);color:var(--accent);border:1px solid rgba(249,115,22,.2);}
+  .b-both{background:rgba(56,189,248,.12);color:var(--accent2);border:1px solid rgba(56,189,248,.2);}
+  .li-link{color:var(--accent2);text-decoration:none;font-weight:700;font-size:12px;}
+  .li-link:hover{color:var(--accent3);}
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--border);}
+  .page-info{color:var(--muted);font-size:12px;}
+  .page-btns{display:flex;gap:5px;}
+  .page-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:5px 11px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .15s;}
+  .page-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+  .page-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
+  .page-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:92%;max-width:700px;max-height:88vh;overflow-y:auto;padding:26px;position:relative;}
+  .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
+  .modal-close:hover{color:var(--text);}
+  .modal-avatar{width:48px;height:48px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:white;flex-shrink:0;}
+  .modal-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:20px;}
+  .modal-name{font-size:20px;font-weight:700;line-height:1.2;}
+  .modal-subtitle{color:var(--muted);font-size:13px;margin-top:4px;}
+  .modal-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .modal-section{margin-bottom:16px;}
+  .modal-section-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;font-weight:600;}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .mf{background:var(--surface);border-radius:8px;padding:9px 13px;}
+  .mf-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+  .mf-value{font-size:13px;word-break:break-word;}
+  .mf-value a{color:var(--accent2);text-decoration:none;}
+  .mf-value a:hover{text-decoration:underline;}
+  .modal-desc{background:var(--surface);border-radius:8px;padding:11px 14px;font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:16px;}
+  .modal-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .modal-btn{padding:8px 16px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;display:inline-block;transition:opacity .15s;}
+  .modal-btn:hover{opacity:.85;}
+  .mb-primary{background:var(--accent);color:white;}
+  .mb-sec{background:var(--surface);color:var(--text);border:1px solid var(--border);}
+  @media(max-width:860px){.charts-row{grid-template-columns:1fr;}.charts-row-2{grid-template-columns:1fr;}.modal-grid{grid-template-columns:1fr;}.main{padding:14px;}.header{padding:12px 14px;flex-wrap:wrap;gap:10px;}input[type=text]{width:200px;}}
+</style>
+</head><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canada · NDT / Oil &amp; Gas Contacts</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0c0f18;
+    --surface: #141720;
+    --card: #1c1f2e;
+    --border: #272b3f;
+    --accent: #f97316;
+    --accent2: #38bdf8;
+    --accent3: #a78bfa;
+    --green: #34d399;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --text: #e8eaf0;
+    --muted: #7b7f9a;
+    --tag-ndt: #a78bfa;
+    --tag-oilgas: #f97316;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; }
+  /* HEADER */
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .flag { font-size: 24px; line-height: 1; }
+  .header h1 { font-size: 17px; font-weight: 700; }
+  .header-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .header-pills { display: flex; gap: 6px; }
+  .pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pill-canada { background: rgba(248,113,19,.15); color: var(--accent); border: 1px solid rgba(248,113,19,.3); }
+  .pill-ndt { background: rgba(167,139,250,.15); color: var(--accent3); border: 1px solid rgba(167,139,250,.3); }
+  .pill-og { background: rgba(56,189,248,.15); color: var(--accent2); border: 1px solid rgba(56,189,248,.3); }
+  .export-btn { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; transition: opacity .2s; white-space: nowrap; }
+  .export-btn:hover { opacity: .85; }
+  /* MAIN */
+  .main { padding: 22px 28px; max-width: 1600px; margin: 0 auto; }
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 22px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 7px; }
+  .stat-value { font-size: 26px; font-weight: 700; line-height: 1; }
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 5px; }
+  .c-orange { color: var(--accent); }
+  .c-blue { color: var(--accent2); }
+  .c-purple { color: var(--accent3); }
+  .c-green { color: var(--green); }
+  .c-yellow { color: var(--yellow); }
+  /* CHARTS */
+  .charts-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+  .charts-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .chart-title { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+  .chart-wrap { position: relative; height: 200px; }
+  .chart-wrap-tall { position: relative; height: 250px; }
+  /* FILTERS */
+  .filters-bar { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; }
+  .filters-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .filters-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .filters-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  select, input[type=text] { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 13px; outline: none; transition: border-color .2s; }
+  select:focus, input[type=text]:focus { border-color: var(--accent); }
+  input[type=text] { width: 260px; }
+  .filter-group { display: flex; align-items: center; gap: 5px; }
+  .filter-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .reset-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 13px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all .15s; }
+  .reset-btn:hover { border-color: var(--accent); color: var(--text); }
+  .count-badge { background: var(--accent); color: white; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  /* TABLE */
+  .table-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .table-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .table-header-title { font-weight: 600; font-size: 15px; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+  thead th { background: var(--surface); color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; padding: 9px 13px; text-align: left; border-bottom: 1px solid var(--border); cursor: pointer; white-space: nowrap; user-select: none; }
+  thead th:hover { color: var(--text); }
+  thead th.sort-asc span::after { content: " ▲"; color: var(--accent); }
+  thead th.sort-desc span::after { content: " ▼"; color: var(--accent); }
+  tbody tr { border-bottom: 1px solid rgba(39,43,63,.7); transition: background .1s; cursor: pointer; }
+  tbody tr:hover { background: rgba(249,115,22,.05); }
+  tbody tr:last-child { border-bottom: none; }
+  td { padding: 10px 13px; vertical-align: middle; }
+  .name-cell { font-weight: 600; white-space: nowrap; }
+  .company-link { color: var(--accent2); text-decoration: none; font-weight: 500; }
+  .company-link:hover { text-decoration: underline; }
+  .email-mono { font-family: monospace; font-size: 12px; color: var(--text); text-decoration: none; }
+  .email-mono:hover { color: var(--accent2); }
+  /* BADGES */
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .b-clevel { background: rgba(249,115,22,.18); color: var(--accent); }
+  .b-vp { background: rgba(56,189,248,.18); color: var(--accent2); }
+  .b-director { background: rgba(167,139,250,.18); color: var(--accent3); }
+  .b-manager { background: rgba(251,191,36,.18); color: var(--yellow); }
+  .b-other { background: rgba(123,127,154,.15); color: var(--muted); }
+  .b-valid { background: rgba(52,211,153,.15); color: var(--green); }
+  .b-invalid { background: rgba(248,113,113,.15); color: var(--red); }
+  .b-acceptall { background: rgba(251,191,36,.15); color: var(--yellow); }
+  .b-ndt { background: rgba(167,139,250,.15); color: var(--accent3); border: 1px solid rgba(167,139,250,.25); }
+  .b-og { background: rgba(249,115,22,.12); color: var(--accent); border: 1px solid rgba(249,115,22,.2); }
+  .b-both { background: rgba(56,189,248,.12); color: var(--accent2); border: 1px solid rgba(56,189,248,.2); }
+  .li-link { color: var(--accent2); text-decoration: none; font-weight: 700; font-size: 12px; }
+  .li-link:hover { color: var(--accent3); }
+  /* PAGINATION */
+  .pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-top: 1px solid var(--border); }
+  .page-info { color: var(--muted); font-size: 12px; }
+  .page-btns { display: flex; gap: 5px; }
+  .page-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 5px 11px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all .15s; }
+  .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .page-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .page-btn:disabled { opacity: .35; cursor: not-allowed; }
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; width: 92%; max-width: 700px; max-height: 88vh; overflow-y: auto; padding: 26px; position: relative; }
+  .modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+  .modal-close:hover { color: var(--text); }
+  .modal-avatar { width: 48px; height: 48px; border-radius: 12px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: white; flex-shrink: 0; }
+  .modal-top { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; }
+  .modal-name { font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .modal-subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .modal-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .modal-section { margin-bottom: 16px; }
+  .modal-section-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; font-weight: 600; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mf { background: var(--surface); border-radius: 8px; padding: 9px 13px; }
+  .mf-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+  .mf-value { font-size: 13px; word-break: break-word; }
+  .mf-value a { color: var(--accent2); text-decoration: none; }
+  .mf-value a:hover { text-decoration: underline; }
+  .modal-desc { background: var(--surface); border-radius: 8px; padding: 11px 14px; font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+  .modal-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .modal-btn { padding: 8px 16px; border-radius: 7px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-block; transition: opacity .15s; }
+  .modal-btn:hover { opacity: .85; }
+  .mb-primary { background: var(--accent); color: white; }
+  .mb-sec { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  @media (max-width:860px) {
+    .charts-row { grid-template-columns: 1fr; }
+    .charts-row-2 { grid-template-columns: 1fr; }
+    .modal-grid { grid-template-columns: 1fr; }
+    .main { padding: 14px; }
+    .header { padding: 12px 14px; flex-wrap: wrap; gap: 10px; }
+    input[type=text] { width: 200px; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <div class="flag">🇨🇦</div>
+    <div>
+      <h1>Canada · NDT / NDE · Oil &amp; Gas · Inspection</h1>
+      <div class="header-sub">Filtered from AI Pipeline export · March 2026</div>
+    </div>
+    <div class="header-pills" style="margin-left:8px">
+      <span class="pill pill-canada">Canada Only</span>
+      <span class="pill pill-ndt">NDT / NDE</span>
+      <span class="pill pill-og">Oil &amp; Gas</span>
+    </div>
+  </div>
+  <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+</div>
+<div class="main">
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">🏷 Contact Category</div>
+      <div class="chart-wrap"><canvas id="chartTags"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">👤 Seniority</div>
+      <div class="chart-wrap"><canvas id="chartSeniority"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">💰 Revenue Range</div>
+      <div class="chart-wrap"><canvas id="chartRevenue"></canvas></div>
+    </div>
+  </div>
+  <div class="charts-row-2">
+    <div class="chart-card">
+      <div class="chart-title">📍 Top Cities</div>
+      <div class="chart-wrap-tall"><canvas id="chartCities"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🏢 Staff Size</div>
+      <div class="chart-wrap-tall"><canvas id="chartStaff"></canvas></div>
+    </div>
+  </div>
+  <!-- FILTERS -->
+  <div class="filters-bar">
+    <div class="filters-top">
+      <div class="filters-title">Filter &amp; Search</div>
+      <span class="count-badge" id="filterCount">129</span>
+    </div>
+    <div class="filters-row">
+      <input type="text" id="searchInput" placeholder="🔍  Name, company, email, title…" oninput="applyFilters()">
+      <div class="filter-group">
+        <span class="filter-label">Category</span>
+        <select id="filterTag" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="NDT/NDE/Inspection, Oil &amp; Gas">NDT + Oil &amp; Gas</option>
+          <option value="Oil &amp; Gas">Oil &amp; Gas Only</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Seniority</span>
+        <select id="filterSeniority" onchange="applyFilters()"><option value="">All</option></select>
+      </div>
+<body>
+<div class="header">
+  <div class="header-left">
+    <div class="flag">🇨🇦</div>
+    <div><h1>Canada · NDT / NDE · Oil &amp; Gas · Inspection</h1><div class="header-sub">Filtered from AI Pipeline export · March 2026</div></div>
+    <div class="header-pills" style="margin-left:8px"><span class="pill pill-canada">Canada Only</span><span class="pill pill-ndt">NDT / NDE</span><span class="pill pill-og">Oil &amp; Gas</span></div>
+  </div>
+  <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+</div>
+<div class="main">
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="charts-row">
+    <div class="chart-card"><div class="chart-title">🏷 Contact Category</div><div class="chart-wrap"><canvas id="chartTags"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">👤 Seniority</div><div class="chart-wrap"><canvas id="chartSeniority"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">💰 Revenue Range</div><div class="chart-wrap"><canvas id="chartRevenue"></canvas></div></div>
+  </div>
+  <div class="charts-row-2">
+    <div class="chart-card"><div class="chart-title">📍 Top Cities</div><div class="chart-wrap-tall"><canvas id="chartCities"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">🏢 Staff Size</div><div class="chart-wrap-tall"><canvas id="chartStaff"></canvas></div></div>
+  </div>
+  <div class="filters-bar">
+    <div class="filters-top"><div class="filters-title">Filter &amp; Search</div><span class="count-badge" id="filterCount">129</span></div>
+    <div class="filters-row">
+      <input type="text" id="searchInput" placeholder="🔍  Name, company, email, title…" oninput="applyFilters()">
+      <div class="filter-group"><span class="filter-label">Category</span><select id="filterTag" onchange="applyFilters()"><option value="">All</option><option value="NDT/NDE/Inspection, Oil &amp; Gas">NDT + Oil &amp; Gas</option><option value="Oil &amp; Gas">Oil &amp; Gas Only</option></select></div>
+      <div class="filter-group"><span class="filter-label">Seniority</span><select id="filterSeniority" onchange="applyFilters()"><option value="">All</option></select></div>
+      <div class="filter-group"><span class="filter-label">City</span><select id="filterCity" onchange="applyFilters()"><option value="">All</option></select></div>
+      <div class="filter-group"><span class="filter-label">Revenue</span><select id="filterRevenue" onchange="applyFilters()"><option value="">All</option></select></div>
+      <div class="filter-group"><span class="filter-label">Email</span><select id="filterEmail" onchange="applyFilters()"><option value="">All</option><option value="valid">Valid Only</option><option value="invalid">Invalid</option></select></div>
+      <button class="reset-btn" onclick="resetFilters()">✕ Reset</button>
+    </div>
+  </div>
+  <div class="table-card">
+    <div class="table-header"><div class="table-header-title">Contacts</div><div style="color:var(--muted);font-size:12px">Click any row for full details</div></div>
+    <div class="table-scroll"><table><thead><tr>
+      <th onclick="sortTable('name')">Name <span></span></th>
+      <th onclick="sortTable('title')">Title <span></span></th>
+      <th onclick="sortTable('company')">Company <span></span></th>
+      <th onclick="sortTable('tags')">Category <span></span></th>
+      <th onclick="sortTable('seniority')">Level <span></span></th>
+      <th onclick="sortTable('email')">Email <span></span></th>
+      <th onclick="sortTable('emailValid')">Valid <span></span></th>
+      <th onclick="sortTable('city')">City <span></span></th>
+      <th onclick="sortTable('revenue')">Revenue <span></span></th>
+      <th>LI</th>
+    </tr></thead><tbody id="tableBody"></tbody></table></div>
+    <div class="pagination"><div class="page-info" id="pageInfo"></div><div class="page-btns" id="pageBtns"></div></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalContent"><button class="modal-close" onclick="closeModalBtn()">✕</button><div id="modalBody"></div></div>
+</div>
+<script>
+const RAW_DATA = [
+{"name":"Denis Tetreau","title":"Chief Executive Officer","department":"Other","seniority":"C-Level","company":"BASE","website":"baseconcepts.com","industry":"Oil & Energy","email":"dtetreau@baseconcepts.com","emailValid":"valid","phone":"403.620.7968","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/denis-tetreau-a249334","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2010","companyLI":"https://www.linkedin.com/company/baseyyc","jobChange":"","timeInRole":"15 years","timeAtCompany":"15 years","tags":"Oil & Gas","companyDesc":"BASE is a Western Canadian multi-discipline firm with expertise in automation, instrumentation and control, electrical (HV, MV, LV), civil and mechanical engineering and power generation."},
+{"name":"James Rutherford","title":"President","department":"Other","seniority":"C-Level","company":"Roil Projects Inc.","website":"roil.ca","industry":"Oil & Energy","email":"james@roil.ca","emailValid":"valid","phone":"780.882.4227","city":"Grande Prairie","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/james-rutherford-aa996470","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1996","companyLI":"https://www.linkedin.com/company/roil-energy-services","jobChange":"","timeInRole":"15 years","timeAtCompany":"15 years","tags":"Oil & Gas","companyDesc":"Roil Projects Inc. provides oilfield services across Western Canada."},
+{"name":"Brian Hamm","title":"President & CEO","department":"Other","seniority":"C-Level","company":"EVA by Turing Analytics","website":"turinganalytics.net","industry":"Oil & Energy","email":"brianh@turinganalytics.net","emailValid":"valid","phone":"403.218.3939","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/brian-hamm-87827a119","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2016","companyLI":"https://www.linkedin.com/company/turinganalytics","jobChange":"","timeInRole":"5 years","timeAtCompany":"5 years","tags":"Oil & Gas","companyDesc":"Turing Analytics is a boutique data consultancy providing custom service for businesses of all sizes."},
+{"name":"Len Kerekanich","title":"President/CEO","department":"Other","seniority":"C-Level","company":"Rotating Right Inc.","website":"rotatingright.com","industry":"Oil & Energy","email":"len.kerekanich@rotatingright.com","emailValid":"valid","phone":"780.818.8895","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/len-kerekanich-11b31824","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2001","companyLI":"https://www.linkedin.com/company/rotating-right-inc-","jobChange":"","timeInRole":"25 years","timeAtCompany":"25 years","tags":"Oil & Gas","companyDesc":"Rotating Right specializes in the application, manufacturing, and sales of surface pumping systems and subsurface artificial lift pumping systems."},
+{"name":"Devon Mildenberger","title":"President & CEO","department":"Other","seniority":"C-Level","company":"SCADACore","website":"scadacore.com","industry":"Oil & Energy","email":"devon.mildenberger@scadacore.com","emailValid":"valid","phone":"403.818.9840","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/devon-mildenberger-85a84329","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2015","companyLI":"https://www.linkedin.com/company/scadacore","jobChange":"","timeInRole":"9 years","timeAtCompany":"9 years","tags":"Oil & Gas","companyDesc":"SCADACore provides fully-managed cloud SCADA / IIoT / remote monitoring solutions for Oil & Gas and Environmental applications."},
+{"name":"Noel Lumsden","title":"Chief Financial Officer","department":"Finance","seniority":"C-Level","company":"Star Valley Oilfield Ltd.","website":"starvalleyoilfield.com","industry":"Oil & Energy","email":"noel@svos.ca","emailValid":"valid","phone":"403.869.2441","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/noel-lumsden-79446522","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/star-valley-oilfield-services-ltd-","jobChange":"","timeInRole":"10 years","timeAtCompany":"10 years","tags":"Oil & Gas","companyDesc":"A company leading the Oilfield Services Industry, focused on providing first class service and value to clients."},
+{"name":"Todd Nicklin","title":"President and CEO","department":"Other","seniority":"C-Level","company":"Peace Country Petroleum Sales Ltd.","website":"peacecountrypetroleum.ca","industry":"Oil & Energy","email":"toddn@peacecountrypetroleum.ca","emailValid":"valid","phone":"250.668.2995","city":"Vancouver","state":"British Columbia","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/todd-nicklin-0b038140","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2006","companyLI":"https://www.linkedin.com/company/peace-country-petroleum","jobChange":"","timeInRole":"8 years","timeAtCompany":"8 years","tags":"Oil & Gas","companyDesc":"Peace Country Petroleum Sales Ltd. supplies Esso fuels and Mobil lubricants to companies in the oil and gas, mining, logging, construction, agriculture and aviation sectors."},
+{"name":"Paul Burbidge","title":"Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Challenger Geomatics Ltd.","website":"challengergeomatics.com","industry":"Oil & Energy","email":"pburbidge@challengergeomatics.com","emailValid":"valid","phone":"867.457.0064","city":"Whitehorse","state":"Yukon","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/paul-burbidge-challenger","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"1984","companyLI":"https://www.linkedin.com/company/challenger-geomatics-ltd-","jobChange":"","timeInRole":"5 years","timeAtCompany":"21 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Challenger Geomatics Ltd. is a proudly employee-owned Canadian geomatics company with offices in Calgary, Edmonton, Fort McMurray, Langley, Whitehorse, and Yellowknife."},
+{"name":"Mindy Verwayne","title":"Chief Financial Officer","department":"Finance","seniority":"C-Level","company":"Avenir Energy Ltd.","website":"avenirenergy.ca","industry":"Oil & Energy","email":"mindy.verwayne@avenirenergy.ca","emailValid":"valid","phone":"416.365.8958","city":"Toronto","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/mindy-verwayne-cpa-ca-cfa-4456606a","revenue":"$20M - $50M","staff":"51 - 200 employees","founded":"2013","companyLI":"https://www.linkedin.com/company/avenir-energy-ltd","jobChange":"","timeInRole":"9 months","timeAtCompany":"9 months","tags":"Oil & Gas","companyDesc":"Avenir Energy is your trusted local propane supplier offering safe, reliable delivery and excellent customer service."},
+{"name":"Matthew Deeprose","title":"Founder","department":"Other","seniority":"C-Level","company":"Vault","website":"vaultgroup.com","industry":"Oil & Energy","email":"mdeeprose@vaultpipelines.com","emailValid":"accept all","phone":"403.803.9204","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/matthew-deeprose-208116b0","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2015","companyLI":"https://www.linkedin.com/company/vault-pipelines","jobChange":"New Promotion","timeInRole":"3 months","timeAtCompany":"10 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Vault is a Canadian company focused on mechanical construction, maintenance and integrity."},
+{"name":"Brian Schmidt","title":"President and CEO","department":"Other","seniority":"C-Level","company":"Tamarack Valley Energy Ltd.","website":"tamarackvalley.ca","industry":"Oil & Energy","email":"brian.schmidt@tamarackvalley.ca","emailValid":"valid","phone":"403.984.5750","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/brian-schmidt-3441b815a","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2002","companyLI":"https://www.linkedin.com/company/tamarack-valley-energy-ltd-tve-","jobChange":"","timeInRole":"","timeAtCompany":"","tags":"Oil & Gas","companyDesc":"Tamarack Valley Energy Ltd (TVE) is an oil & energy company based out of Calgary, Alberta, Canada."},
+{"name":"Donovan Nielsen","title":"President","department":"Other","seniority":"C-Level","company":"Scovan","website":"scovan.ca","industry":"Oil & Energy","email":"donovann@scovan.ca","emailValid":"valid","phone":"403.969.2231","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/donovan-n-847964112","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2010","companyLI":"https://www.linkedin.com/company/scovan-inc","jobChange":"","timeInRole":"16 years","timeAtCompany":"16 years","tags":"Oil & Gas","companyDesc":"Scovan is an industry leading EPFC that specializes in offering innovation and expertise for energy sector projects."},
+{"name":"Shawn Beamish","title":"CEO and Co-Founder","department":"Other","seniority":"C-Level","company":"Victory Well Servicing LLC","website":"wellservicing.com","industry":"Oil & Energy","email":"sbeamish@wellservicing.com","emailValid":"valid","phone":"780.975.4070","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/shawn-beamish-9513947","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2014","companyLI":"https://www.linkedin.com/company/victory-well-servicing-llc","jobChange":"","timeInRole":"12 years","timeAtCompany":"12 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"At Victory Well Servicing, we strive for excellence in well completion and oil rig operations."},
+{"name":"Olena Varych","title":"Chief Executive Officer","department":"Other","seniority":"C-Level","company":"ESG Solutions","website":"esgsolutions.com","industry":"Oil & Energy","email":"olena.varych@esgsolutions.com","emailValid":"accept all","phone":"416.529.2725","city":"Kingston","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/olena-varych-cpa-cga-08a20518","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2008","companyLI":"https://www.linkedin.com/company/esgsolutions","jobChange":"","timeInRole":"10 months","timeAtCompany":"10 years","tags":"Oil & Gas","companyDesc":"ESG Solutions provides advanced frac diagnostic tools for the oilfield."},
+{"name":"Bryce Rawding","title":"President","department":"Other","seniority":"C-Level","company":"Propell","website":"propell.com","industry":"Oil & Energy","email":"brawding@propell.com","emailValid":"valid","phone":"403.408.9352","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/bryce-rawding-6a06115a","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2008","companyLI":"https://www.linkedin.com/company/propell-oilfield-equipment","jobChange":"","timeInRole":"3 years","timeAtCompany":"4 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Propell provides oilfield equipment and inspection services."},
+{"name":"Olivier Marcotte","title":"Founder and CEO","department":"Other","seniority":"C-Level","company":"Nucleom","website":"nucleom.ca","industry":"Oil & Energy","email":"olivierm@nucleom.ca","emailValid":"valid","phone":"418.955.0433","city":"Quebec","state":"","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/olivier-marcotte-7b38746","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2010","companyLI":"https://www.linkedin.com/company/nucleom","jobChange":"","timeInRole":"16 years","timeAtCompany":"16 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Nucleom is a leading Canadian company offering customized inspection solutions for nuclear, petrochemical, pipeline, and mining industries."},
+{"name":"Dave Reich","title":"President","department":"Other","seniority":"C-Level","company":"Altex Industries Inc.","website":"altexinc.com","industry":"Oil & Energy","email":"dreich@altexinc.com","emailValid":"accept all","phone":"780.699.0076","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/dave-reich-23a6561a8","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2001","companyLI":"https://www.linkedin.com/company/altex-industries-inc","jobChange":"","timeInRole":"8 years","timeAtCompany":"22 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Altex Industries is located in Edmonton Alberta with a primary focus on heat exchangers in the Canadian market."},
+{"name":"James Harasen","title":"President & CEO","department":"Other","seniority":"C-Level","company":"H2Safety Services Inc.","website":"h2safety.ca","industry":"Oil & Energy","email":"jamesh@h2safety.ca","emailValid":"valid","phone":"403.863.2379","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/james-harasen-469b9b37","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2004","companyLI":"https://www.linkedin.com/company/h2safety-services-inc-","jobChange":"","timeInRole":"26 years","timeAtCompany":"26 years","tags":"Oil & Gas","companyDesc":"H2Safety delivers comprehensive Emergency Management and Health, Safety and Environment services."},
+{"name":"Antonio Calderon","title":"Chief Financial Officer","department":"Finance","seniority":"C-Level","company":"Steelhaus Technologies Inc.","website":"steelhausinc.com","industry":"Oil & Energy","email":"acalderon@steelhausinc.com","emailValid":"accept all","phone":"403.919.5010","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/antonio-calderon-mba-492a6284","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2008","companyLI":"https://www.linkedin.com/company/steelhaus-technologies-inc","jobChange":"","timeInRole":"a year","timeAtCompany":"9 years","tags":"Oil & Gas","companyDesc":"Steelhaus Tryton Canada is a leader and innovator in downhole completion, production, and workover tools."},
+{"name":"Danielle Thorkelsson","title":"Chief Financial Officer","department":"Finance","seniority":"C-Level","company":"Pitbull Energy Services","website":"pitbullenergyservices.com","industry":"Oil & Energy","email":"danielle@pitbullenergyservices.com","emailValid":"valid","phone":"780.257.5011","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/danielle-thorkelsson-b975841b","revenue":"$20M - $50M","staff":"51 - 200 employees","founded":"2005","companyLI":"https://www.linkedin.com/company/pitbullenergyservices","jobChange":"","timeInRole":"13 years","timeAtCompany":"13 years","tags":"Oil & Gas","companyDesc":"Pitbull Energy Services Inc. is a Canadian-based Energy & Industrial services company providing Environmental Solutions & Equipment Services across Western Canada."},
+{"name":"Gavin Pulford","title":"Chief Financial Officer","department":"Finance","seniority":"C-Level","company":"Inova Geophysical","website":"inovageo.com","industry":"Oil & Energy","email":"gavin.pulford@inovageo.com","emailValid":"valid","phone":"403.537.2216","city":"Sugar Land","state":"Texas","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/gavin-pulford-10353517","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2010","companyLI":"https://www.linkedin.com/company/inova-geophysical","jobChange":"","timeInRole":"4 years","timeAtCompany":"7 years","tags":"Oil & Gas","companyDesc":"INOVA designs and manufactures seismic data acquisition systems primarily for the oil and gas industry."},
+{"name":"Ali Malek","title":"President & CEO","department":"Other","seniority":"C-Level","company":"Petro Techna","website":"petro-techna.com","industry":"Oil & Energy","email":"ali.malek@petro-techna.com","emailValid":"valid","phone":"416.903.1007","city":"Toronto","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/alimalek","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"1989","companyLI":"https://www.linkedin.com/company/petro-techna","jobChange":"","timeInRole":"11 years","timeAtCompany":"32 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"PETRO-TECHNA INTERNATIONAL LTD. is a Canadian Company providing engineering design, procurement, fabrication, and construction management services."},
+{"name":"Bruce Cherewyk","title":"CEO","department":"Other","seniority":"C-Level","company":"Isolation Equipment Services","website":"isolationequipment.com","industry":"Oil & Energy","email":"b.cherewyk@isolationequipment.com","emailValid":"valid","phone":"403.265.9399","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/bruce-cherewyk-9491b5157","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2004","companyLI":"https://www.linkedin.com/company/isolation-equipment-services","jobChange":"","timeInRole":"","timeAtCompany":"","tags":"Oil & Gas","companyDesc":"IES is a full service surface fracturing equipment provider based in Western Canada."},
+{"name":"Nouman Ahmad","title":"Co-Founder & CEO","department":"Other","seniority":"C-Level","company":"Validere","website":"validere.com","industry":"Oil & Energy","email":"nouman.ahmad@validere.com","emailValid":"accept all","phone":"403.971.4597","city":"Toronto","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/noumanzahmad","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2015","companyLI":"https://www.linkedin.com/company/validere","jobChange":"","timeInRole":"10 years","timeAtCompany":"10 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Validere is the enterprise intelligence platform for the energy industry."},
+{"name":"Ashish Patel","title":"Chief Technology Officer","department":"IT","seniority":"C-Level","company":"Blackstone Energy Services Inc.","website":"blackstoneenergy.com","industry":"Oil & Energy","email":"apatel@blackstoneenergy.com","emailValid":"valid","phone":"416.607.4137","city":"Toronto","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/ashishipatel","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2002","companyLI":"https://www.linkedin.com/company/blackstone-energy-services-inc","jobChange":"","timeInRole":"3 years","timeAtCompany":"3 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Blackstone Energy specializes in the repair, maintenance, and optimization of transformers, substations, switchgear, RMUs, and solar plants."},
+{"name":"Blair Layton","title":"Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Cold Bore Technology","website":"coldboretechnology.com","industry":"Oil & Energy","email":"blair.layton@coldboretechnology.com","emailValid":"valid","phone":"587.803.3390","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/blair-layton","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2013","companyLI":"https://www.linkedin.com/company/cold-bore-technology","jobChange":"","timeInRole":"2 years","timeAtCompany":"13 years","tags":"Oil & Gas","companyDesc":"SmartPAD by Cold Bore Technology is your all-in-one standardized completions dataset available in real-time."},
+{"name":"Stuart MacKenzie","title":"Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Gas Liquids Engineering","website":"gasliquids.com","industry":"Oil & Energy","email":"smackenzie@gasliquids.com","emailValid":"valid","phone":"403.701.5725","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/stuart-mackenzie-a2a59734","revenue":"$5M - $20M","staff":"201 - 500 employees","founded":"1987","companyLI":"https://www.linkedin.com/company/gas-liquids-engineering-ltd.","jobChange":"","timeInRole":"4 years","timeAtCompany":"4 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Gas Liquids Engineering (GLE) is a Calgary, Alberta based engineering services provider serving Western Canada since 1987."},
+{"name":"Gord Kelly","title":"President","department":"Other","seniority":"C-Level","company":"Startec Compression & Process and Startec Service","website":"startec.ca","industry":"Oil & Energy","email":"gkelly@startec.ca","emailValid":"valid","phone":"403.993.6646","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/gord-kelly-a3785626","revenue":"$1M - $5M","staff":"201 - 500 employees","founded":"1976","companyLI":"https://www.linkedin.com/company/startec-refrigeration-compression-&-process-solutions","jobChange":"","timeInRole":"3 years","timeAtCompany":"10 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Founded in 1976, Startec is a leader in the engineering, design, manufacture and service of compression and processing systems across North America."},
+{"name":"Tom Littleford","title":"COO","department":"Operations","seniority":"C-Level","company":"DarkVision","website":"darkvisiontech.com","industry":"Oil & Energy","email":"littleford@darkvisiontech.com","emailValid":"accept all","phone":"236.858.5821","city":"Vancouver","state":"British Columbia","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/tom-littleford-p-eng-a246477a","revenue":"$5M - $20M","staff":"201 - 500 employees","founded":"2013","companyLI":"https://www.linkedin.com/company/darkvision-technologies","jobChange":"","timeInRole":"3 years","timeAtCompany":"7 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"DarkVision Technologies Inc. is a BC-based tech company disrupting the industrial imaging market with acoustic-based imaging technology."},
+{"name":"Darren McDougall","title":"President","department":"Other","seniority":"C-Level","company":"McDougall Energy Inc.","website":"mcdougallenergy.com","industry":"Oil & Energy","email":"darrenmcdougall@mcdougallenergy.com","emailValid":"valid","phone":"705.946.9357","city":"Sault Ste Marie","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/darren-mcdougall-74660213","revenue":"$5M - $20M","staff":"201 - 500 employees","founded":"1949","companyLI":"https://www.linkedin.com/company/mcdougall-energy-inc.","jobChange":"","timeInRole":"39 years","timeAtCompany":"39 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"McDougall Energy is a Canadian family-owned business that distributes quality petroleum products and services reliably and responsibly."},
+{"name":"Jenson Tan","title":"Chief Operating Officer","department":"Operations","seniority":"C-Level","company":"Tenaz Energy","website":"tenazenergy.com","industry":"Oil & Energy","email":"jtan@tenazenergy.com","emailValid":"valid","phone":"403.476.8097","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jensontan","revenue":"$20M - $50M","staff":"201 - 500 employees","founded":"2021","companyLI":"https://www.linkedin.com/company/tenazenergy","jobChange":"","timeInRole":"2 years","timeAtCompany":"2 years","tags":"Oil & Gas","companyDesc":"Tenaz Energy is a public energy company focused on the acquisition and development of international oil and gas assets."},
+{"name":"Craig Brown","title":"Chief Technology Officer","department":"IT","seniority":"C-Level","company":"Phoenix Technology Services","website":"phxtech.com","industry":"Oil & Energy","email":"cbrown@phxtech.com","emailValid":"valid","phone":"403.473.8464","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/craig-brown-30879b5","revenue":"$1M - $5M","staff":"501 - 1,000 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/phoenix-technology-services","jobChange":"","timeInRole":"a year","timeAtCompany":"15 years","tags":"Oil & Gas","companyDesc":"Phoenix Technology Services provides downhole directional drilling and measurement-while-drilling services."},
+{"name":"Rory Thompson","title":"COO","department":"Operations","seniority":"C-Level","company":"Step Energy Services","website":"stepenergyservices.com","industry":"Oil & Energy","email":"rthompson@step-es.com","emailValid":"accept all","phone":"403.506.1244","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/rory-thompson-44b32326a","revenue":"$1M - $5M","staff":"501 - 1,000 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/step-energy-services","jobChange":"","timeInRole":"15 years","timeAtCompany":"15 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"STEP Energy Services provides deep-capacity coiled tubing, fluid and nitrogen pumping, and hydraulic fracturing solutions to North American clients."},
+{"name":"Darren Curran","title":"President & Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Bantrel Co.","website":"bantrel.com","industry":"Oil & Energy","email":"currand@bantrel.com","emailValid":"valid","phone":"403.290.5001","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/darren-c-a26676181","revenue":"$5M - $20M","staff":"1,001 - 5,000 employees","founded":"1983","companyLI":"https://www.linkedin.com/company/bantrel","jobChange":"","timeInRole":"7 years","timeAtCompany":"7 years","tags":"Oil & Gas","companyDesc":"Established in 1983, Bantrel has an extensive history of resource-related projects throughout Canada, executing EPC/CM for full project lifecycles."},
+{"name":"Martin Milot","title":"Chief Operating Officer","department":"Operations","seniority":"C-Level","company":"Metsco Energy Solutions","website":"bbaconsultants.com","industry":"Oil & Energy","email":"martin.milot@bba.ca","emailValid":"valid","phone":"514.949.0665","city":"Otterburn Park","state":"Quebec","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/martin-milot-94591b14","revenue":"$5M - $20M","staff":"1,001 - 5,000 employees","founded":"2006","companyLI":"https://www.linkedin.com/company/metsco-energy-solutions-inc-","jobChange":"","timeInRole":"12 years","timeAtCompany":"26 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Metsco Energy Solutions provides power sector engineering and management consulting services."},
+{"name":"Christopher Wong","title":"Chief Operating Officer","department":"Operations","seniority":"C-Level","company":"Blackstone Industrial Services","website":"blackstoneindustrial.com","industry":"Oil & Energy","email":"cwong@blackstoneindustrial.ca","emailValid":"valid","phone":"403.923.8498","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/christopher-wong-4863aa31","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2003","companyLI":"https://www.linkedin.com/company/blackstone-industrial-services","jobChange":"New Promotion","timeInRole":"2 months","timeAtCompany":"6 years","tags":"Oil & Gas","companyDesc":"Blackstone services turbomachinery throughout the oil and gas industry including refining, LNG, petrochemical and process industries."},
+{"name":"Brian Hamm","title":"President & CEO","department":"Other","seniority":"C-Level","company":"McDaniel","website":"mcdan.com","industry":"Oil & Energy","email":"bhamm@mcdan.com","emailValid":"accept all","phone":"403.218.3939","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/brian-hamm-87827a119","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"1955","companyLI":"https://www.linkedin.com/company/mcdaniel","jobChange":"","timeInRole":"8 years","timeAtCompany":"17 years","tags":"Oil & Gas","companyDesc":"McDaniel is focused on unravelling the complexities of the Energy business with engineers, geologists, economists and data scientists."},
+{"name":"Curtis VanWalleghem","title":"Co-founder & CEO, Board Member","department":"Other","seniority":"C-Level","company":"Hydrostor","website":"hydrostor.ca","industry":"Renewables & Environment","email":"curtis.vanwalleghem@hydrostor.ca","emailValid":"valid","phone":"416.567.2695","city":"Toronto","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/curtisvanwalleghem","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2010","companyLI":"https://www.linkedin.com/company/hydrostor-inc-","jobChange":"","timeInRole":"16 years","timeAtCompany":"16 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Hydrostor is a leading developer and operator of long-duration energy storage systems using compressed air and water."},
+{"name":"Tim Schneider","title":"President","department":"Other","seniority":"C-Level","company":"Blackstone Energy Services Inc.","website":"blackstoneenergy.com","industry":"Oil & Energy","email":"tschneider@blackstoneenergy.com","emailValid":"valid","phone":"416.428.0618","city":"Toronto","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/tim-schneider-36a17a3","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2002","companyLI":"https://www.linkedin.com/company/blackstone-energy-services-inc","jobChange":"","timeInRole":"4 years","timeAtCompany":"10 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Blackstone Energy specializes in transformers, substations, switchgear, RMUs and solar plants."},
+{"name":"Mike Dick","title":"Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Klondike Lubricants Corporation","website":"klondikelubricants.com","industry":"Oil & Energy","email":"miked@klondikelubricants.com","emailValid":"accept all","phone":"236.330.3500","city":"Delta","state":"British Columbia","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/mike-dick","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"1987","companyLI":"https://www.linkedin.com/company/klondikelubricants","jobChange":"","timeInRole":"3 years","timeAtCompany":"3 years","tags":"Oil & Gas","companyDesc":"KLONDIKE provides robust, reliable, high quality lubricants for heavy duty, automotive and industrial markets."},
+{"name":"Tyler Dahlseide","title":"President","department":"Other","seniority":"C-Level","company":"Ferus","website":"ferus.ca","industry":"Oil & Energy","email":"tylerdahlseide@ferus.com","emailValid":"valid","phone":"403.835.0092","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/tyler-dahlseide-71b25a85","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2014","companyLI":"https://www.linkedin.com/company/ferus-inc","jobChange":"","timeInRole":"9 years","timeAtCompany":"9 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Ferus provides natural gas liquids to remote locations across Canada."},
+{"name":"Kelly Elias","title":"Chief Technology Officer","department":"IT","seniority":"C-Level","company":"Dynasty Power Inc.","website":"dynastypower.ca","industry":"Oil & Energy","email":"kelias@dynastypower.ca","emailValid":"valid","phone":"403.830.3634","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/kellyelias","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/dynasty-power","jobChange":"","timeInRole":"15 years","timeAtCompany":"15 years","tags":"Oil & Gas","companyDesc":"Dynasty Power Inc. provides simple-cycle natural gas facilities for rapid-response electricity generation."},
+{"name":"Sean Ashlee","title":"Director, Information Services","department":"IT","seniority":"Director","company":"Steel Reef","website":"steelreef.ca","industry":"Oil & Energy","email":"sean.ashlee@steelreef.ca","emailValid":"valid","phone":"587.320.3364","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/sean-ashlee-2b430335","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/steel-reef-infrastructure-corp-","jobChange":"","timeInRole":"5 years","timeAtCompany":"5 years","tags":"Oil & Gas","companyDesc":"Steel Reef is a Canadian company that gathers and redistributes wasted emissions to deliver energy."},
+{"name":"Shayne Olson","title":"Supply Chain Director - Canada","department":"Other","seniority":"Director","company":"Midfield Valve & Supply","website":"midfieldvalvesupply.ca","industry":"Oil & Energy","email":"shayne.olson@mrcglobal.com","emailValid":"accept all","phone":"780.979.2982","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/shayne-olson-b64247139","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"","companyLI":"","jobChange":"","timeInRole":"7 years","timeAtCompany":"7 years","tags":"Oil & Gas","companyDesc":"An industry leading supplier of pipe, valves, fittings, actuation, and measurement to the energy sector."},
+{"name":"Derek Blizzard","title":"Director of Accounting and IT","department":"IT","seniority":"Director","company":"Tamarack Valley Energy Ltd.","website":"tamarackvalley.ca","industry":"Oil & Energy","email":"derek.blizzard@tamarackvalley.ca","emailValid":"valid","phone":"403.984.5737","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/derek-blizzard-44353665","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2002","companyLI":"https://www.linkedin.com/company/tamarack-valley-energy-ltd-tve-","jobChange":"","timeInRole":"15 years","timeAtCompany":"15 years","tags":"Oil & Gas","companyDesc":"Tamarack Valley Energy Ltd is an oil & energy company based in Calgary, Alberta, Canada."},
+{"name":"Shawn Martin","title":"Director, Information Technology","department":"IT","seniority":"Director","company":"Wolf Midstream","website":"wolfmidstream.com","industry":"Oil & Energy","email":"smartin@wolfmidstream.com","emailValid":"valid","phone":"403.993.0304","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/shawn-martin-1657686","revenue":"$5M - $20M","staff":"201 - 500 employees","founded":"2016","companyLI":"https://www.linkedin.com/company/wolf-midstream","jobChange":"","timeInRole":"2 years","timeAtCompany":"2 years","tags":"Oil & Gas","companyDesc":"Wolf is a private midstream company backed by Canada Pension Plan Investments focused on acquisition and development of midstream energy infrastructure assets in Western Canada."},
+{"name":"Brent Halling","title":"Director of IT","department":"IT","seniority":"Director","company":"United Safety","website":"unitedsafety.net","industry":"Oil & Energy","email":"hallingb@unitedsafety.net","emailValid":"accept all","phone":"403.629.1860","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/brent-halling-0937a9","revenue":"$1M - $5M","staff":"501 - 1,000 employees","founded":"1987","companyLI":"https://www.linkedin.com/company/united-safety","jobChange":"","timeInRole":"15 years","timeAtCompany":"15 years","tags":"Oil & Gas","companyDesc":"United Safety is a safety solutions provider specializing in safety equipment, personnel and services for the Oil and Gas industry."},
+{"name":"Mark Bedard","title":"Director, Information Systems & Technology","department":"IT","seniority":"Director","company":"Step Energy Services","website":"stepenergyservices.com","industry":"Oil & Energy","email":"mark.bedard@step-es.com","emailValid":"accept all","phone":"403.923.9929","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/mark-bedard-78617a","revenue":"$1M - $5M","staff":"501 - 1,000 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/step-energy-services","jobChange":"","timeInRole":"4 years","timeAtCompany":"4 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"STEP Energy Services provides coiled tubing, fluid pumping, and hydraulic fracturing solutions to North American clients."},
+{"name":"Christian von Ompteda","title":"Director, IT Technical Services","department":"IT","seniority":"Director","company":"Trans Mountain","website":"transmountain.com","industry":"Oil & Energy","email":"christian_vonompteda@transmountain.com","emailValid":"valid","phone":"403.514.6758","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/christian-v-888a66","revenue":"$5M - $20M","staff":"1,001 - 5,000 employees","founded":"1953","companyLI":"https://www.linkedin.com/company/trans-mountain","jobChange":"","timeInRole":"5 years","timeAtCompany":"7 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Trans Mountain Corporation operates Canada's only pipeline system transporting oil products to the West Coast."},
+{"name":"Mark Imach","title":"Head of Information Systems","department":"IT","seniority":"Director","company":"Total Energy Services Inc.","website":"totalenergy.ca","industry":"Oil & Energy","email":"mimach@totalenergy.ca","emailValid":"accept all","phone":"4032163939","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/mark-i-62121b9","revenue":"$1M - $5M","staff":"1,001 - 5,000 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/totalenergyservicesinc","jobChange":"","timeInRole":"3 years","timeAtCompany":"20 years","tags":"Oil & Gas","companyDesc":"Total Energy Services provides equipment and expertise for drilling, completion, production, and transportation needs."},
+{"name":"Rob Young","title":"Cybersecurity Lead & Senior Cloud Administrator","department":"IT","seniority":"Director","company":"Bantrel Co.","website":"bantrel.com","industry":"Oil & Energy","email":"youngr@bantrel.com","emailValid":"valid","phone":"403.515.8880","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/robyoung99","revenue":"$5M - $20M","staff":"1,001 - 5,000 employees","founded":"1983","companyLI":"https://www.linkedin.com/company/bantrel","jobChange":"","timeInRole":"4 years","timeAtCompany":"4 years","tags":"Oil & Gas","companyDesc":"Bantrel executes EPC/CM for full project lifecycles in energy, mining & infrastructure markets."},
+{"name":"Jason Kaluski","title":"VP of Operations","department":"Operations","seniority":"VP","company":"Gear Energy Ltd.","website":"gearenergy.com","industry":"Oil & Energy","email":"jkaluski@gearenergy.com","emailValid":"valid","phone":"403.538.8161","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jason-kaluski-4237b192","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/gear-energy-ltd","jobChange":"","timeInRole":"15 years","timeAtCompany":"15 years","tags":"Oil & Gas","companyDesc":"Gear Energy is a public oil and gas E&P company with heavy oil exposure in East Central Alberta and West Central Saskatchewan."},
+{"name":"Janelle Benson","title":"Vice President, External Relations & Strategy","department":"Other","seniority":"VP","company":"Pathways Alliance","website":"pathwaysalliance.ca","industry":"Oil & Energy","email":"janelle.benson@pathwaysalliance.ca","emailValid":"valid","phone":"403.766.6341","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/janelle-benson-pmp-69308212","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/pathways-alliance","jobChange":"","timeInRole":"a year","timeAtCompany":"2 years","tags":"Oil & Gas","companyDesc":"Pathways Alliance - Canada's largest oil sands companies working together to advance environmental innovation."},
+{"name":"Steven Buytels","title":"Vice President Finance & CFO","department":"Finance","seniority":"VP","company":"Tamarack Valley Energy Ltd.","website":"tamarackvalley.ca","industry":"Oil & Energy","email":"steve.buytels@tamarackvalley.ca","emailValid":"valid","phone":"403.462.5359","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/steven-buytels-cfa-223373197","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2002","companyLI":"https://www.linkedin.com/company/tamarack-valley-energy-ltd-tve-","jobChange":"","timeInRole":"6 years","timeAtCompany":"6 years","tags":"Oil & Gas","companyDesc":"Tamarack Valley Energy Ltd is an oil & energy company based in Calgary, Alberta, Canada."},
+{"name":"Jason Sawchuk","title":"Vice President, Finance & Accounting","department":"Finance","seniority":"VP","company":"Midstream Energy Partners","website":"midstreamenergy.us","industry":"Oil & Energy","email":"jason.sawchuk@midstreamenergy.us","emailValid":"valid","phone":"403.863.5630","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jason-sawchuk-914148ab","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/midstream-lpg","jobChange":"","timeInRole":"a year","timeAtCompany":"a year","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Midstream Energy Holdings provides quality services with cost effectiveness and safety to customers across the industry."},
+{"name":"Christine Crawford","title":"Vice President, Sustainability and Communications","department":"Other","seniority":"VP","company":"Step Energy Services","website":"stepenergyservices.com","industry":"Oil & Energy","email":"ccrawford@step-es.com","emailValid":"accept all","phone":"587.349.5675","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/dchristinecrawford","revenue":"$1M - $5M","staff":"501 - 1,000 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/step-energy-services","jobChange":"","timeInRole":"3 years","timeAtCompany":"3 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"STEP Energy Services provides coiled tubing, fluid pumping, and hydraulic fracturing solutions."},
+{"name":"Yassine Rguagui","title":"Vice-president, IT","department":"IT","seniority":"VP","company":"Eddyfi Technologies","website":"eddyfitechnologies.com","industry":"Consumer Electronics","email":"yrguagui@eddyfi.com","emailValid":"valid","phone":"418.271.4653","city":"Quebec","state":"","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/yassine-rguagui-1534ab18","revenue":"$5M - $20M","staff":"501 - 1,000 employees","founded":"2009","companyLI":"https://www.linkedin.com/company/842125","jobChange":"","timeInRole":"10 months","timeAtCompany":"10 months","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Eddyfi Technologies provides the highest performance Non-Destructive Testing (NDT) inspection technologies and robotic solutions in the world."},
+{"name":"Brad Macson","title":"Vice President, Operations","department":"Operations","seniority":"VP","company":"Total Energy Services Inc.","website":"totalenergy.ca","industry":"Oil & Energy","email":"bmacson@totalenergy.ca","emailValid":"accept all","phone":"403.815.1335","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/bradley-macson-83b18b46","revenue":"$1M - $5M","staff":"1,001 - 5,000 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/totalenergyservicesinc","jobChange":"","timeInRole":"18 years","timeAtCompany":"18 years","tags":"Oil & Gas","companyDesc":"Total Energy Services provides equipment and expertise for drilling, completion, and production needs."},
+{"name":"Mike Winters","title":"Chief Commercial Officer (CCO)","department":"Other","seniority":"C-Level","company":"Hydron Energy Inc.","website":"hydron.ca","industry":"Oil & Energy","email":"mike.winters@hydron.ca","emailValid":"valid","phone":"416.458.5610","city":"Ottawa","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/mike-winters-39a139b3","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2020","companyLI":"https://www.linkedin.com/company/hydron-energy-inc","jobChange":"","timeInRole":"6 months","timeAtCompany":"a year","tags":"Oil & Gas","companyDesc":"Hydron Energy has developed a breakthrough nano structured Metal Organic Framework for gas processing."},
+{"name":"Robert Dack","title":"Managing Director and President (Shearfrac Canada)","department":"Other","seniority":"C-Level","company":"ShearFRAC","website":"shearfrac.com","industry":"Oil & Energy","email":"r.dack@shearfrac.com","emailValid":"accept all","phone":"403.889.4925","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/robert-dack-55976117","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"2019","companyLI":"https://www.linkedin.com/company/shear-frac-group","jobChange":"","timeInRole":"7 years","timeAtCompany":"7 years","tags":"Oil & Gas","companyDesc":"ShearFRAC translates the complex subsurface into actionable insights helping operators reduce risk and improve efficiency."},
+{"name":"Sam G Bouey","title":"Founder and Chief Technology Officer","department":"IT","seniority":"C-Level","company":"Core Linepipe","website":"corelinepipe.com","industry":"Oil & Energy","email":"sbouey@corelinepipe.com","emailValid":"valid","phone":"403.813.0525","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/sam-g-bouey-7ab33935","revenue":"$1M - $5M","staff":"51 - 200 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/core-linepipe-inc","jobChange":"","timeInRole":"2 years","timeAtCompany":"14 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Core Linepipe is a pipeline technology company focused on innovative solutions that rethink traditional pipeline systems."},
+{"name":"Ian Burgess","title":"co-Founder and Board Member","department":"Other","seniority":"C-Level","company":"Validere","website":"validere.com","industry":"Oil & Energy","email":"ian.burgess@validere.com","emailValid":"accept all","phone":"647.401.2029","city":"Toronto","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/ian-burgess-35966337","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2015","companyLI":"https://www.linkedin.com/company/validere","jobChange":"","timeInRole":"7 months","timeAtCompany":"11 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Validere is the enterprise intelligence platform for the energy industry."},
+{"name":"Steven Koles","title":"President & CEO","department":"Other","seniority":"C-Level","company":"Hifi","website":"hifieng.com","industry":"Oil & Energy","email":"skoles@hifieng.com","emailValid":"valid","phone":"403.560.0069","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/steven-koles-icd-d-982444","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2007","companyLI":"https://www.linkedin.com/company/hifi-engineering-inc-","jobChange":"","timeInRole":"12 years","timeAtCompany":"12 years","tags":"Oil & Gas","companyDesc":"Hifi develops high fidelity fiber optic monitoring technology for oil and gas applications."},
+{"name":"Brent Coombe","title":"Chief Technology Officer","department":"IT","seniority":"C-Level","company":"EnerCorp","website":"enercorp.net","industry":"Oil & Energy","email":"bcoombe@enercorp.net","emailValid":"valid","phone":"403.814.0936","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/brent-coombe","revenue":"$1M - $5M","staff":"201 - 500 employees","founded":"2017","companyLI":"https://www.linkedin.com/company/enercorp","jobChange":"","timeInRole":"2 years","timeAtCompany":"7 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"EnerCorp provides well-site execution services through collaboration and transparency."},
+{"name":"Steve Glanville","title":"President & Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Step Energy Services","website":"stepenergyservices.com","industry":"Oil & Energy","email":"sglanville@step-es.com","emailValid":"accept all","phone":"403.457.1776","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/steve-glanville-39508835","revenue":"$1M - $5M","staff":"501 - 1,000 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/step-energy-services","jobChange":"","timeInRole":"3 years","timeAtCompany":"3 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"STEP Energy Services provides coiled tubing, fluid pumping, and hydraulic fracturing solutions."},
+{"name":"Martin Theriault","title":"Founder and Executive Chairman","department":"Other","seniority":"C-Level","company":"Eddyfi Technologies","website":"eddyfitechnologies.com","industry":"Consumer Electronics","email":"mtheriault@eddyfi.com","emailValid":"valid","phone":"418.558.7647","city":"Quebec","state":"","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/martin-theriault-8766a4","revenue":"$5M - $20M","staff":"501 - 1,000 employees","founded":"2009","companyLI":"https://www.linkedin.com/company/842125","jobChange":"","timeInRole":"10 months","timeAtCompany":"10 months","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Headquartered in Quebec, Canada, Eddyfi Technologies provides the highest performance NDT inspection technologies and robotic solutions in the world."},
+{"name":"Todd Stack","title":"Chief Financial Officer (Interim)","department":"Finance","seniority":"C-Level","company":"Trans Mountain","website":"transmountain.com","industry":"Oil & Energy","email":"todd_stack@transmountain.com","emailValid":"valid","phone":"403.267.7222","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/todd-stack-7a4b1b9","revenue":"$5M - $20M","staff":"1,001 - 5,000 employees","founded":"1953","companyLI":"https://www.linkedin.com/company/trans-mountain","jobChange":"","timeInRole":"a year","timeAtCompany":"a year","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Trans Mountain Corporation operates Canada's only pipeline system transporting oil products to the West Coast."},
+{"name":"Jennifer Stubbs","title":"Chief Financial Officer","department":"Finance","seniority":"C-Level","company":"Flint Corp.","website":"flintcorp.com","industry":"Oil & Energy","email":"jstubbs@flintcorp.com","emailValid":"valid","phone":"403.519.9700","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jennifer-stubbs-7bb637148","revenue":"$100M - $500M","staff":"501 - 1,000 employees","founded":"2017","companyLI":"https://www.linkedin.com/company/flintcorp","jobChange":"","timeInRole":"3 years","timeAtCompany":"3 years","tags":"Oil & Gas","companyDesc":"FLINT is a leading provider for Maintenance & Turnarounds, Fabrication, Pipeline Installation & Integrity, and Environmental Services."},
+{"name":"Armin Jahangiri","title":"Chief Operating Officer","department":"Operations","seniority":"C-Level","company":"ARC Resources Ltd.","website":"arcresources.com","industry":"Oil & Energy","email":"ajahangiri@arcresources.com","emailValid":"accept all","phone":"403.993.5850","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/arminjahangiri","revenue":"$1B+","staff":"501 - 1,000 employees","founded":"1996","companyLI":"https://www.linkedin.com/company/arc-resources-ltd-","jobChange":"","timeInRole":"4 years","timeAtCompany":"12 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"ARC Resources Ltd. is a pure-play Montney producer and one of Canada's largest dividend-paying energy companies."},
+{"name":"Lee Whittaker","title":"CEO","department":"Other","seniority":"C-Level","company":"United Safety","website":"unitedsafety.net","industry":"Oil & Energy","email":"whittaker@unitedsafety.net","emailValid":"accept all","phone":"403.945.5023","city":"Airdrie","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/lee-whittaker-8485ab35","revenue":"$1M - $5M","staff":"501 - 1,000 employees","founded":"1987","companyLI":"https://www.linkedin.com/company/united-safety","jobChange":"","timeInRole":"39 years","timeAtCompany":"39 years","tags":"Oil & Gas","companyDesc":"United Safety is a safety solutions provider specializing in safety equipment, personnel and services for the Oil and Gas industry."},
+{"name":"Brian Robinson","title":"CFO","department":"Finance","seniority":"C-Level","company":"Tourmaline Oil Corp.","website":"tourmalineoil.com","industry":"Oil & Energy","email":"robinson@tourmalineoil.com","emailValid":"valid","phone":"403.767.3587","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/brian-robinson-5433233a","revenue":"$1B+","staff":"501 - 1,000 employees","founded":"2016","companyLI":"https://www.linkedin.com/company/tourmaline-oil-corp","jobChange":"","timeInRole":"18 years","timeAtCompany":"18 years","tags":"Oil & Gas","companyDesc":"Tourmaline is Canada's largest natural gas producer, headquartered in Calgary, Alberta."},
+{"name":"Jane MacEachern","title":"Chief of Staff","department":"Other","seniority":"C-Level","company":"Irving Oil","website":"irvingoil.com","industry":"Oil & Energy","email":"jane.maceachern@irvingoil.com","emailValid":"accept all","phone":"506.202.4670","city":"Saint John","state":"New Brunswick","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jane-maceachern-48649612","revenue":"$1B+","staff":"1,001 - 5,000 employees","founded":"1924","companyLI":"https://www.linkedin.com/company/irving-oil","jobChange":"","timeInRole":"7 months","timeAtCompany":"10 years","tags":"Oil & Gas","companyDesc":"Irving Oil is a leading downstream energy company with a history of supplying energy to customers across Eastern Canada and New England."},
+{"name":"Paul Hawksworth","title":"Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Inter Pipeline","website":"interpipeline.com","industry":"Oil & Energy","email":"paul.hawksworth@interpipeline.com","emailValid":"valid","phone":"403.390.8521","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/phawksworth","revenue":"$1B+","staff":"1,001 - 5,000 employees","founded":"1997","companyLI":"https://www.linkedin.com/company/inter-pipeline","jobChange":"","timeInRole":"2 years","timeAtCompany":"5 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Inter Pipeline is a major energy infrastructure business operating pipeline and storage assets across Canada."},
+{"name":"Kelley White","title":"Chief Information Officer","department":"IT","seniority":"C-Level","company":"Irving Oil","website":"irvingoil.com","industry":"Oil & Energy","email":"kelley.greerwhite@irvingoil.com","emailValid":"accept all","phone":"506.202.1181","city":"Saint John","state":"New Brunswick","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/kelley-g-16377437","revenue":"$1B+","staff":"1,001 - 5,000 employees","founded":"1924","companyLI":"https://www.linkedin.com/company/irving-oil","jobChange":"","timeInRole":"10 years","timeAtCompany":"10 years","tags":"Oil & Gas","companyDesc":"Irving Oil is a leading downstream energy company supplying energy products across Eastern Canada and New England."},
+{"name":"Scott Burrows","title":"President and Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Pembina Pipeline Corporation","website":"pembina.com","industry":"Oil & Energy","email":"sburrows@pembina.com","emailValid":"accept all","phone":"403.771.1803","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/scott-burrows-5b9b0837","revenue":"$1B+","staff":"1,001 - 5,000 employees","founded":"1954","companyLI":"https://www.linkedin.com/company/pembina-pipeline-corporation","jobChange":"","timeInRole":"4 years","timeAtCompany":"15 years","tags":"Oil & Gas","companyDesc":"Pembina Pipeline Corporation is a dynamic energy transportation and midstream provider, serving customers for 70 years."},
+{"name":"Manuj Nikhanj","title":"Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Enverus","website":"enverus.com","industry":"Oil & Energy","email":"karen.kausche@enverus.com","emailValid":"valid","phone":"403.294.6494","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/manuj-nikhanj-281a1936","revenue":"$100M - $500M","staff":"1,001 - 5,000 employees","founded":"1987","companyLI":"https://www.linkedin.com/company/enverus-energy","jobChange":"","timeInRole":"2 years","timeAtCompany":"5 years","tags":"Oil & Gas","companyDesc":"Enverus is a single source platform for management, development and acquisition within the entire energy value chain."},
+{"name":"Vern Yu","title":"President and Chief Executive Officer","department":"Other","seniority":"C-Level","company":"AltaGas Ltd.","website":"altagas.ca","industry":"Oil & Energy","email":"vern.yu@altagas.ca","emailValid":"accept all","phone":"403.231.3946","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/vernyu","revenue":"$1B+","staff":"1,001 - 5,000 employees","founded":"1994","companyLI":"https://www.linkedin.com/company/altagas","jobChange":"","timeInRole":"3 years","timeAtCompany":"3 years","tags":"Oil & Gas","companyDesc":"AltaGas is a leading North American infrastructure company connecting customers and markets to affordable and reliable sources of energy."},
+{"name":"Dean Setoguchi","title":"President & Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Keyera","website":"keyera.com","industry":"Oil & Energy","email":"dean_setoguchi@keyera.com","emailValid":"accept all","phone":"403.205.8376","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/dean-setoguchi-5742b114","revenue":"$50M - $100M","staff":"1,001 - 5,000 employees","founded":"1998","companyLI":"https://www.linkedin.com/company/keyera","jobChange":"","timeInRole":"5 years","timeAtCompany":"12 years","tags":"Oil & Gas","companyDesc":"Keyera connects energy for life with a foundation of responsible growth, innovative thinking, and integrity."},
+{"name":"Jeff Matthews","title":"President and CEO","department":"Other","seniority":"C-Level","company":"Irving Oil","website":"irvingoil.com","industry":"Oil & Energy","email":"jeff.matthews@irvingoil.com","emailValid":"accept all","phone":"506.202.7775","city":"Saint John","state":"New Brunswick","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jeff-matthews-1b01a129","revenue":"$1B+","staff":"1,001 - 5,000 employees","founded":"1924","companyLI":"https://www.linkedin.com/company/irving-oil","jobChange":"","timeInRole":"a year","timeAtCompany":"a year","tags":"Oil & Gas","companyDesc":"Irving Oil is a leading downstream energy company with a history of supplying energy products across Eastern Canada."},
+{"name":"Kevin Fleury","title":"President & CEO","department":"Other","seniority":"C-Level","company":"Ceda International","website":"ceda.com","industry":"Oil & Energy","email":"kevin.fleury@cedagroup.com","emailValid":"valid","phone":"403.476.5615","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/kevin-fleury-b09b4670","revenue":"$500M - $1B","staff":"1,001 - 5,000 employees","founded":"1973","companyLI":"https://www.linkedin.com/company/ceda-international-corporation","jobChange":"","timeInRole":"14 years","timeAtCompany":"14 years","tags":"Oil & Gas","companyDesc":"CEDA International specializes in mechanical and insulation services including custom made insulated removable covers."},
+{"name":"Todd Thue","title":"Chief Operating Officer","department":"Operations","seniority":"C-Level","company":"Trican Well Service Ltd.","website":"tricanwellservice.com","industry":"Oil & Energy","email":"tthue@trican.ca","emailValid":"valid","phone":"403.231.6100","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/toddthue","revenue":"$500M - $1B","staff":"1,001 - 5,000 employees","founded":"2006","companyLI":"https://www.linkedin.com/company/trican-well-service-ltd-","jobChange":"","timeInRole":"6 years","timeAtCompany":"6 years","tags":"Oil & Gas","companyDesc":"Trican Completion Solutions is a fast growing oilfield service company focused on specialized completion and intervention solutions."},
+{"name":"Eric Sjerve","title":"Chief Technology Officer","department":"IT","seniority":"C-Level","company":"Irisndt","website":"irisndt.com","industry":"Oil & Energy","email":"eric.sjerve@irisndt.com","emailValid":"valid","phone":"780.913.5126","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation, NDT Contacts in Canada","linkedin":"https://www.linkedin.com/in/eric-sjerve-a67a9851","revenue":"$50M - $100M","staff":"1,001 - 5,000 employees","founded":"2010","companyLI":"https://www.linkedin.com/company/irisndt","jobChange":"","timeInRole":"22 years","timeAtCompany":"22 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"One of the largest independent Asset Integrity companies providing Non-destructive Testing, Inspection, and Specialized Mechanical Services."},
+{"name":"François Poirier","title":"President and Chief Executive Officer","department":"Other","seniority":"C-Level","company":"TC Energy","website":"tcenergy.com","industry":"Oil & Energy","email":"francois_poirier@tcenergy.com","emailValid":"valid","phone":"403.920.2003","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/fran%C3%A7ois-poirier-a876632a","revenue":"$1B+","staff":"5,001 - 10,000 employees","founded":"1951","companyLI":"https://www.linkedin.com/company/tcenergy","jobChange":"","timeInRole":"5 years","timeAtCompany":"12 years","tags":"Oil & Gas","companyDesc":"TC Energy maintains resilient and reliable energy networks that safely deliver North American natural gas across more than 93,000 km."},
+{"name":"Michael MacKinnon","title":"Director, Office of the CIO, Digital & Information Technology","department":"IT","seniority":"C-Level","company":"Suncor","website":"suncor.com","industry":"Oil & Energy","email":"mimackinnon@suncor.com","emailValid":"valid","phone":"403.816.5392","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/michael-mackinnon-ca-mpacc-58ab862a","revenue":"$1B+","staff":"10,001+ employees","founded":"1967","companyLI":"https://www.linkedin.com/company/suncor","jobChange":"","timeInRole":"3 years","timeAtCompany":"13 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"In 1967, Suncor pioneered commercial development of Canada's oil sands and has grown to become a globally competitive integrated energy company."},
+{"name":"Richard Kruger","title":"President & CEO","department":"Other","seniority":"C-Level","company":"Suncor","website":"suncor.com","industry":"Oil & Energy","email":"richkruger@suncor.com","emailValid":"valid","phone":"713.724.6051","city":"Medicine Hat","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/richard-kruger-7654161a9","revenue":"$1B+","staff":"10,001+ employees","founded":"1967","companyLI":"https://www.linkedin.com/company/suncor","jobChange":"","timeInRole":"3 years","timeAtCompany":"3 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Suncor is a globally competitive integrated energy company with a balanced portfolio of high-quality assets."},
+{"name":"Dustin Collister","title":"Director of Business Development","department":"Sales","seniority":"Director","company":"Q Test Inspection Ltd.","website":"qtest.ca","industry":"Oil & Energy","email":"dustin@qtest.ca","emailValid":"valid","phone":"","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/dustin-collister-2b316b128","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/qtest-inspection","jobChange":"","timeInRole":"7 years","timeAtCompany":"7 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Providing superior inspection and nondestructive testing services for over 20 years."},
+{"name":"Jules Tchomo P","title":"Project Director","department":"Project Management","seniority":"Director","company":"Kamit Group Ltd.","website":"kamitgroupltd.com","industry":"Oil & Energy","email":"jules.p@kamitgroupltd.com","emailValid":"invalid","phone":"","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/julest","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2014","companyLI":"https://www.linkedin.com/company/kamit-group-ltd","jobChange":"","timeInRole":"5 years","timeAtCompany":"5 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"KAMIT is the leading provider of professional services in the construction and complex process industry sector of Oil and Gas."},
+{"name":"Simon Trudeau","title":"Production Director","department":"Other","seniority":"Director","company":"Sg Ndt","website":"sgndt.com","industry":"Oil & Energy","email":"strudeau@sgndt.com","emailValid":"valid","phone":"","city":"Montreal","state":"Quebec","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/simon-trudeau-7249b7369","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/sgndt","jobChange":"","timeInRole":"","timeAtCompany":"","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"SG NDT Inc. was created in March 2012 in Lévis, Québec, Canada with founders having over 35 and 26 years of experience in NDT."},
+{"name":"Tony Gu","title":"Engineering Lead","department":"Engineering","seniority":"Director","company":"Keymay Industries","website":"keymay.com","industry":"Oil & Energy","email":"tony.gu@keymay.com","emailValid":"valid","phone":"","city":"Sherwood Park","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/tony-g-2b72a048","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/keymay","jobChange":"","timeInRole":"8 years","timeAtCompany":"8 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"KEYMAY has been at the forefront of the industry since 1995, pioneering new technologies for pipeline and civil construction sites."},
+{"name":"Yav-Valentin Ilunga","title":"Inspection Lead Hand","department":"Other","seniority":"Director","company":"Hallmark Tubulars Ltd.","website":"hallmarksolutions.ca","industry":"Oil & Energy","email":"yav-valentin.ilunga@hallmarksolutions.ca","emailValid":"invalid domain","phone":"","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/yav-valentin-ilunga-14631938","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1980","companyLI":"https://www.linkedin.com/company/hallmark-tubulars-ltd-","jobChange":"","timeInRole":"12 years","timeAtCompany":"12 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Hallmark has provided premium OCTG and linepipe with an unmatched level of service for over 40 years."},
+{"name":"Dustin Peitzsche","title":"Director of Welding Technology","department":"IT","seniority":"Director","company":"Q Test Inspection Ltd.","website":"qtest.ca","industry":"Oil & Energy","email":"dustin.peitzsche@qtest.ca","emailValid":"valid","phone":"403.392.4285","city":"Innisfail","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/dustin-peitzsche-b8aa037a","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/qtest-inspection","jobChange":"New Hire","timeInRole":"3 months","timeAtCompany":"3 months","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Providing superior inspection and nondestructive testing services for over 20 years."},
+{"name":"Jan Pollock","title":"VP Sales","department":"Sales","seniority":"VP","company":"ODIN","website":"northstarind.com","industry":"Oil & Energy","email":"jpollock@odinepc.com","emailValid":"invalid","phone":"905.668.9174","city":"Cambridge","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jan-pollock-a0248518","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1996","companyLI":"https://www.linkedin.com/company/odin-epc","jobChange":"","timeInRole":"30 years","timeAtCompany":"30 years","tags":"Oil & Gas","companyDesc":"ODIN EPC is a premier supplier of Engineering, Procurement and Construction services to the energy industry."},
+{"name":"Lindsay Gough","title":"Lead, Human Resources Business Partner","department":"Human Resources","seniority":"Director","company":"Hallmark Tubulars Ltd.","website":"hallmarksolutions.ca","industry":"Oil & Energy","email":"lgough@hallmarksolutions.ca","emailValid":"invalid domain","phone":"780.770.9106","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/lindsay-gough","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1980","companyLI":"https://www.linkedin.com/company/hallmark-tubulars-ltd-","jobChange":"","timeInRole":"5 years","timeAtCompany":"11 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Hallmark has provided premium OCTG and linepipe with an unmatched level of service for over 40 years."},
+{"name":"Sylvain Huard","title":"R&D Director","department":"Other","seniority":"Director","company":"Sg Ndt","website":"sgndt.com","industry":"Oil & Energy","email":"shuard@sgndt.com","emailValid":"valid","phone":"418.476.8017","city":"Quebec","state":"Quebec","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/sylvainhuard","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/sgndt","jobChange":"","timeInRole":"12 years","timeAtCompany":"12 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"SG NDT Inc. specializes in Non-Destructive Testing solutions with founders having decades of experience."},
+{"name":"Mike Cooke","title":"President","department":"Other","seniority":"C-Level","company":"Q Test Inspection Ltd.","website":"qtest.ca","industry":"Oil & Energy","email":"mike.cooke@qtest.ca","emailValid":"invalid","phone":"403.588.8488","city":"Sylvan Lake","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/mike-cooke-74214b66","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/qtest-inspection","jobChange":"","timeInRole":"","timeAtCompany":"","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Providing superior inspection and nondestructive testing services for over 20 years."},
+{"name":"Brian Boulet","title":"President","department":"Other","seniority":"C-Level","company":"Streamline Inspection Ltd.","website":"streamlineinspection.com","industry":"Oil & Energy","email":"bboulet@streamlineinspection.com","emailValid":"valid","phone":"403.869.9658","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/brian-boulet-8875775b","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2007","companyLI":"https://www.linkedin.com/company/streamline-inspection-ltd","jobChange":"","timeInRole":"19 years","timeAtCompany":"19 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Streamline Inspection Ltd. provides API inspections, NDT, 3D laser scanning, and engineering evaluations for pressure vessels, piping, and storage tanks."},
+{"name":"Simon Trudeau","title":"Production Director","department":"Other","seniority":"Director","company":"Sg Ndt","website":"sgndt.com","industry":"Oil & Energy","email":"strudeau@sgndt.com","emailValid":"valid","phone":"","city":"Quebec","state":"Quebec","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/simon-trudeau-227684397","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/sgndt","jobChange":"","timeInRole":"2 years","timeAtCompany":"4 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"SG NDT Inc. specializes in NDT solutions with founders having decades of experience in the field."},
+{"name":"Michael Brault","title":"Technical Director","department":"IT","seniority":"Director","company":"Summit NDE","website":"summitnde.com","industry":"Oil & Energy","email":"michael.brault@summitnde.com","emailValid":"invalid","phone":"780.220.1816","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/michael-brault-b8050474","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2022","companyLI":"https://www.linkedin.com/company/summit-nde","jobChange":"","timeInRole":"2 years","timeAtCompany":"2 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Summit NDE is a nondestructive examination contractor and materials testing facility servicing clients around the world."},
+{"name":"Scott MacLeod","title":"Vice President of Business Development & Sales","department":"Sales","seniority":"VP","company":"Keymay Industries","website":"keymay.com","industry":"Oil & Energy","email":"scott.macleod@keymay.com","emailValid":"valid","phone":"587.357.3650","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/scott-m-macleod","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/keymay","jobChange":"","timeInRole":"a year","timeAtCompany":"a year","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"KEYMAY has been at the forefront of the industry since 1995 with innovative technologies for pipeline construction."},
+{"name":"Damien Brewster","title":"QA/QC Manager","department":"IT","seniority":"Manager","company":"Keymay Industries","website":"keymay.com","industry":"Oil & Energy","email":"damien.brewster@keymay.com","emailValid":"valid","phone":"","city":"Sherwood Park","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/damien-brewster","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/keymay","jobChange":"","timeInRole":"9 months","timeAtCompany":"9 months","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"KEYMAY provides innovative technologies for pipeline and civil construction sites worldwide."},
+{"name":"Harshit Patel","title":"NDT Trainee","department":"Other","seniority":"Entry Level","company":"TriQuest NDT","website":"triquestndt.com","industry":"Oil & Energy","email":"harshit.patel@triquestndt.com","emailValid":"valid","phone":"905.961.9016","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/harshit-patel-a0142112a","revenue":"$50M - $100M","staff":"51 - 200 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/triquest-ndt","jobChange":"","timeInRole":"2 years","timeAtCompany":"2 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"TriQuest NDT provides a wide range of Nondestructive Testing services in Calgary, Edmonton, Lloydminster and Fort McMurray, Alberta."},
+{"name":"Kristopher Hall","title":"API Inspector and NDE Technician","department":"Other","seniority":"Mid-Level","company":"Streamline Inspection Ltd.","website":"streamlineinspection.com","industry":"Oil & Energy","email":"khall@streamlineinspection.com","emailValid":"valid","phone":"","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/kristopher-hall-87719a173","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2007","companyLI":"https://www.linkedin.com/company/streamline-inspection-ltd","jobChange":"","timeInRole":"7 years","timeAtCompany":"7 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Streamline Inspection Ltd. provides API inspections, NDT, 3D laser scanning, and engineering evaluations."},
+{"name":"Kevin Powell","title":"VP Operations","department":"Operations","seniority":"VP","company":"Hallmark Tubulars Ltd.","website":"hallmarksolutions.ca","industry":"Oil & Energy","email":"kevin.powell@hallmarksolutions.ca","emailValid":"invalid domain","phone":"","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/kevin-powell-b32a417","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1980","companyLI":"https://www.linkedin.com/company/hallmark-tubulars-ltd-","jobChange":"","timeInRole":"","timeAtCompany":"","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Hallmark has provided premium OCTG and linepipe with an unmatched level of service for over 40 years."},
+{"name":"Jim Gonda","title":"QC Manager","department":"Other","seniority":"Manager","company":"Cape Manufacturing Ltd.","website":"capemfg.com","industry":"Oil & Energy","email":"jimg@capemfg.ca","emailValid":"valid","phone":"","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jim-gonda-7a3a10bb","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/cape-manufacturing-ltd","jobChange":"","timeInRole":"","timeAtCompany":"","tags":"Oil & Gas","companyDesc":"Cape specializes in the manufacturing of oilfield processing equipment in Central Alberta."},
+{"name":"Ankit Rana","title":"Financial Director","department":"Finance","seniority":"Director","company":"Q Test Inspection Ltd.","website":"qtest.ca","industry":"Oil & Energy","email":"ankit.rana@qtest.ca","emailValid":"valid","phone":"","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/ankit-rana-8423ba27b","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/qtest-inspection","jobChange":"","timeInRole":"","timeAtCompany":"","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Q Test Inspection provides superior inspection and nondestructive testing services."},
+{"name":"Doug Donecz","title":"Plant Director","department":"Other","seniority":"Director","company":"Armor Machine and Manufacturing Ltd.","website":"armormachine.com","industry":"Oil & Energy","email":"doug@armormachine.com","emailValid":"valid","phone":"","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/doug-donecz-65264a82","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1982","companyLI":"https://www.linkedin.com/company/armor-machine-ltd.","jobChange":"","timeInRole":"27 years","timeAtCompany":"27 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Armor Machine Ltd. is located in the heart of the oilfield industry in Edmonton, Alberta, combining the latest technology with long standing expertise."},
+{"name":"Dale Vickery","title":"Quality Manager/Chief Inspector","department":"Other","seniority":"Manager","company":"Streamline Inspection Ltd.","website":"streamlineinspection.com","industry":"Oil & Energy","email":"dvickery@streamlineinspection.com","emailValid":"invalid","phone":"","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/dale-vickery-77061a41","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2007","companyLI":"https://www.linkedin.com/company/streamline-inspection-ltd","jobChange":"","timeInRole":"5 years","timeAtCompany":"5 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Streamline Inspection provides API inspections, NDT, 3D laser scanning, and engineering evaluations."},
+{"name":"Darcy Erion","title":"QCI and Logistics Supervisor","department":"Operations","seniority":"Manager","company":"Cape Manufacturing Ltd.","website":"capemfg.com","industry":"Oil & Energy","email":"darcye@capemfg.ca","emailValid":"invalid","phone":"","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/darcy-erion-b5204316a","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/cape-manufacturing-ltd","jobChange":"","timeInRole":"","timeAtCompany":"","tags":"Oil & Gas","companyDesc":"Cape specializes in the manufacturing of oilfield processing equipment in Central Alberta."},
+{"name":"Barb Lingelbach","title":"Office Manager","department":"Operations","seniority":"Manager","company":"Keymay Industries","website":"keymay.com","industry":"Oil & Energy","email":"barb.lingelbach@keymay.com","emailValid":"invalid","phone":"","city":"Sherwood Park","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/barb-lingelbach-69088181","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/keymay","jobChange":"","timeInRole":"16 years","timeAtCompany":"16 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"KEYMAY provides innovative technologies for pipeline and civil construction sites worldwide."},
+{"name":"Angela Manning","title":"Data Administrator","department":"IT","seniority":"Mid-Level","company":"Streamline Inspection Ltd.","website":"streamlineinspection.com","industry":"Oil & Energy","email":"amanning@streamlineinspection.com","emailValid":"valid","phone":"","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/angela-manning-b455a956","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2007","companyLI":"https://www.linkedin.com/company/streamline-inspection-ltd","jobChange":"","timeInRole":"10 years","timeAtCompany":"10 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Streamline Inspection provides API inspections, NDT, 3D laser scanning, and engineering evaluations."},
+{"name":"Dylan Sundquist","title":"NDT Technician","department":"Other","seniority":"Mid-Level","company":"Streamline Inspection Ltd.","website":"streamlineinspection.com","industry":"Oil & Energy","email":"dsundquist@streamlineinspection.com","emailValid":"valid","phone":"","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/dylan-sundquist-5289058a","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2007","companyLI":"https://www.linkedin.com/company/streamline-inspection-ltd","jobChange":"","timeInRole":"8 years","timeAtCompany":"8 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Streamline Inspection provides API inspections, NDT, 3D laser scanning, and engineering evaluations."},
+{"name":"Bradley Schmidt","title":"R&D Technologist - Field Support","department":"Support","seniority":"Mid-Level","company":"Keymay Industries","website":"keymay.com","industry":"Oil & Energy","email":"bradley.schmidt@keymay.com","emailValid":"valid","phone":"","city":"Camrose","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/bradley-schmidt-0a002b66","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/keymay","jobChange":"","timeInRole":"8 years","timeAtCompany":"8 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"KEYMAY provides innovative technologies for pipeline and civil construction sites worldwide."},
+{"name":"Jay Hebert","title":"Acheteur","department":"Other","seniority":"Mid-Level","company":"Sg Ndt","website":"sgndt.com","industry":"Oil & Energy","email":"jhebert@sgndt.com","emailValid":"valid","phone":"","city":"Lévis","state":"Quebec","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jay-hebert-a84a27165","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/sgndt","jobChange":"","timeInRole":"4 years","timeAtCompany":"11 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"SG NDT Inc. specializes in NDT solutions with founders having decades of experience in the field."},
+{"name":"Gerrie Friesen","title":"Accounting Administration Assistant","department":"Operations","seniority":"Other","company":"Streamline Inspection Ltd.","website":"streamlineinspection.com","industry":"Oil & Energy","email":"gfriesen@streamlineinspection.com","emailValid":"valid","phone":"","city":"Langdon","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/gerrie-friesen-04637363","revenue":"$5M - $20M","staff":"51 - 200 employees","founded":"2007","companyLI":"https://www.linkedin.com/company/streamline-inspection-ltd","jobChange":"","timeInRole":"3 years","timeAtCompany":"3 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Streamline Inspection provides API inspections, NDT, 3D laser scanning, and engineering evaluations."},
+{"name":"Suzy Herbert","title":"Administrative Assistant","department":"Operations","seniority":"Other","company":"Armor Machine and Manufacturing Ltd.","website":"armormachine.com","industry":"Oil & Energy","email":"sherbert@armormachine.com","emailValid":"valid","phone":"","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/suzy-herbert-20862212a","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1982","companyLI":"https://www.linkedin.com/company/armor-machine-ltd.","jobChange":"","timeInRole":"9 years","timeAtCompany":"9 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Armor Machine Ltd. leads the way in machining and custom manufacturing of oilfield products since 1982."},
+{"name":"Tim Yach","title":"Vice President of Operations","department":"Operations","seniority":"VP","company":"Q Test Inspection Ltd.","website":"qtest.ca","industry":"Oil & Energy","email":"tim.yach@qtest.ca","emailValid":"valid","phone":"403.896.6377","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/tim-yach-970689350","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/qtest-inspection","jobChange":"","timeInRole":"2 years","timeAtCompany":"4 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Q Test provides superior inspection and nondestructive testing services for over 20 years."},
+{"name":"Jack Saltarelli","title":"CUI Manager","department":"Other","seniority":"Manager","company":"TriQuest NDT","website":"triquestndt.com","industry":"Oil & Energy","email":"jack.saltarelli@triquestndt.com","emailValid":"valid","phone":"780.784.9679","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jack-saltarelli-731b981a1","revenue":"$50M - $100M","staff":"51 - 200 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/triquest-ndt","jobChange":"","timeInRole":"7 years","timeAtCompany":"7 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"TriQuest NDT provides a wide range of Nondestructive Testing services in Calgary, Edmonton, Lloydminster and Fort McMurray."},
+{"name":"Jimilee Ayotte","title":"HR AND SPECIAL PROJECTS","department":"Human Resources","seniority":"Mid-Level","company":"Cape Manufacturing Ltd.","website":"capemfg.com","industry":"Oil & Energy","email":"jimileea@capemfg.ca","emailValid":"valid","phone":"","city":"Gadsby","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jimilee-ayotte-bsc-0b1b6a28a","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/cape-manufacturing-ltd","jobChange":"","timeInRole":"2 years","timeAtCompany":"2 years","tags":"Oil & Gas","companyDesc":"Cape specializes in the manufacturing of oilfield processing equipment in Central Alberta."},
+{"name":"Leona Chadwick","title":"Chief Financial Officer","department":"Finance","seniority":"C-Level","company":"Cape Manufacturing Ltd.","website":"capemfg.com","industry":"Oil & Energy","email":"leonac@capemfg.ca","emailValid":"valid","phone":"403.279.1811","city":"Halkirk","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/leona-chadwick-1b576ab9","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/cape-manufacturing-ltd","jobChange":"","timeInRole":"14 years","timeAtCompany":"14 years","tags":"Oil & Gas","companyDesc":"Cape specializes in the manufacturing of oilfield processing equipment in Central Alberta."},
+{"name":"Thomas Chadwick","title":"President","department":"Other","seniority":"C-Level","company":"Cape Manufacturing Ltd.","website":"capemfg.com","industry":"Oil & Energy","email":"thomasc@capemfg.ca","emailValid":"valid","phone":"403.259.9268","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/thomas-chadwick-","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/cape-manufacturing-ltd","jobChange":"","timeInRole":"13 years","timeAtCompany":"13 years","tags":"Oil & Gas","companyDesc":"Cape specializes in the manufacturing of oilfield processing equipment in Central Alberta."},
+{"name":"Rock Samson","title":"President","department":"Other","seniority":"C-Level","company":"Sg Ndt","website":"sgndt.com","industry":"Oil & Energy","email":"rsamson@sgndt.com","emailValid":"valid","phone":"418.262.7682","city":"Quebec","state":"Quebec","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/rock-samson-199671a","revenue":"$0 - $100K","staff":"11 - 50 employees","founded":"2012","companyLI":"https://www.linkedin.com/company/sgndt","jobChange":"","timeInRole":"14 years","timeAtCompany":"14 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"SG NDT Inc. was created in March 2012 in Lévis, Québec with founders having 35 and 26 years of experience in the NDT field."},
+{"name":"Clint Magdee","title":"Vice President Operations","department":"Operations","seniority":"VP","company":"Q Test Inspection Ltd.","website":"qtest.ca","industry":"Oil & Energy","email":"clint.magdee@qtest.ca","emailValid":"valid","phone":"403.616.4002","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/clint-magdee-3438145b","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/qtest-inspection","jobChange":"","timeInRole":"25 years","timeAtCompany":"25 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Q Test provides superior inspection and nondestructive testing services for over 20 years."},
+{"name":"Mark Simpson","title":"President & CFO","department":"Finance","seniority":"C-Level","company":"Keymay Industries","website":"keymay.com","industry":"Oil & Energy","email":"mark.simpson@keymay.com","emailValid":"valid","phone":"587.341.4016","city":"Sherwood Park","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/w-mark-simpson-b32b8229","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/keymay","jobChange":"","timeInRole":"3 years","timeAtCompany":"3 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"KEYMAY provides innovative technologies for pipeline and civil construction sites worldwide."},
+{"name":"Jesse Bailey","title":"President","department":"Other","seniority":"C-Level","company":"Q Test Inspection Ltd.","website":"qtest.ca","industry":"Oil & Energy","email":"jesse.bailey@qtest.ca","emailValid":"valid","phone":"780.904.3979","city":"Calgary","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jesse-bailey-58461751","revenue":"$1M - $5M","staff":"11 - 50 employees","founded":"1995","companyLI":"https://www.linkedin.com/company/qtest-inspection","jobChange":"","timeInRole":"7 years","timeAtCompany":"7 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"Q Test provides superior inspection and nondestructive testing services for over 20 years."},
+{"name":"Diemo Honore","title":"Chief Executive Officer","department":"Other","seniority":"C-Level","company":"Kamit Group Ltd.","website":"kamitgroupltd.com","industry":"Oil & Energy","email":"diemo.honore@kamitgroupltd.com","emailValid":"valid","phone":"780.667.5423","city":"Mississauga","state":"Ontario","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/diemo-honore-p-eng-22913a12","revenue":"$5M - $20M","staff":"11 - 50 employees","founded":"2014","companyLI":"https://www.linkedin.com/company/kamit-group-ltd","jobChange":"","timeInRole":"4 years","timeAtCompany":"13 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"KAMIT is the leading provider of professional services in the Oil and Gas construction industry, delivering Geotechnical, Quality Control, and NDT services."},
+{"name":"Kenneth Farrell","title":"Branch Manager","department":"Other","seniority":"Manager","company":"TriQuest NDT","website":"triquestndt.com","industry":"Oil & Energy","email":"kenneth.farrell@triquestndt.com","emailValid":"valid","phone":"780.531.5152","city":"Fort Mcmurray","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/kenneth-farrell-76692152","revenue":"$50M - $100M","staff":"51 - 200 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/triquest-ndt","jobChange":"","timeInRole":"a year","timeAtCompany":"a year","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"TriQuest NDT provides Nondestructive Testing services in Calgary, Edmonton, Lloydminster and Fort McMurray, Alberta."},
+{"name":"Paul Jagpal","title":"Senior Tech Manager","department":"IT","seniority":"Manager","company":"TriQuest NDT","website":"triquestndt.com","industry":"Oil & Energy","email":"paul.jagpal@triquestndt.com","emailValid":"valid","phone":"780.218.1201","city":"Edmonton","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/paul-jagpal-81568035","revenue":"$50M - $100M","staff":"51 - 200 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/triquest-ndt","jobChange":"","timeInRole":"12 years","timeAtCompany":"12 years","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"TriQuest NDT provides Nondestructive Testing services in Calgary, Edmonton, Lloydminster and Fort McMurray, Alberta."},
+{"name":"Jason Tremblay","title":"Vice President","department":"Other","seniority":"VP","company":"TriQuest NDT","website":"triquestndt.com","industry":"Oil & Energy","email":"jtremblay@triquestndt.com","emailValid":"invalid","phone":"","city":"Lloydminster","state":"Alberta","country":"Canada","list":"AI Automation","linkedin":"https://www.linkedin.com/in/jason-tremblay-108bb986","revenue":"$50M - $100M","staff":"51 - 200 employees","founded":"2011","companyLI":"https://www.linkedin.com/company/triquest-ndt","jobChange":"","timeInRole":"","timeAtCompany":"","tags":"NDT/NDE/Inspection, Oil & Gas","companyDesc":"TriQuest NDT provides Nondestructive Testing services in Calgary, Edmonton, Lloydminster and Fort McMurray, Alberta."}
+];
+let filtered = [...RAW_DATA];
+let currentPage = 1;
+const PAGE_SIZE = 25;
+let sortKey = 'name';
+let sortDir = 1;
+const REV_ORDER = ['$0 - $100K','$100K - $1M','$1M - $5M','$5M - $20M','$20M - $50M','$50M - $100M','$100M - $500M','$500M - $1B','$1B+'];
+let charts = {};
+
+function init() { populateFilters(); buildStats(RAW_DATA); buildCharts(RAW_DATA); applyFilters(); }
+
+function populateFilters() {
+  const s=[...new Set(RAW_DATA.map(r=>r.seniority).filter(Boolean))].sort();
+  const c=[...new Set(RAW_DATA.map(r=>r.city).filter(Boolean))].sort();
+  const rv=REV_ORDER.filter(r=>RAW_DATA.some(c=>c.revenue===r));
+  fill('filterSeniority',s); fill('filterCity',c); fill('filterRevenue',rv);
+}
+
+function fill(id,arr) {
+  const sel=document.getElementById(id);
+  arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+}
+
+function buildStats(data) {
+  const total=data.length;
+  const validEmails=data.filter(r=>r.emailValid==='valid').length;
+  const clevel=data.filter(r=>r.seniority==='C-Level').length;
+  const companies=new Set(data.map(r=>r.company).filter(Boolean)).size;
+  const ndtOnly=data.filter(r=>r.tags&&r.tags.includes('NDT')).length;
+  const withPhone=data.filter(r=>r.phone).length;
+  const withLI=data.filter(r=>r.linkedin).length;
+  document.getElementById('statsGrid').innerHTML=[
+    {label:'Total Contacts',val:total,sub:'Canada only',cls:'c-orange'},
+    {label:'Companies',val:companies,sub:'unique orgs',cls:'c-blue'},
+    {label:'NDT / NDE / Inspection',val:ndtOnly,sub:'inspection-focused',cls:'c-purple'},
+    {label:'Valid Emails',val:validEmails,sub:Math.round(validEmails/total*100)+'% deliverable',cls:'c-green'},
+    {label:'C-Level',val:clevel,sub:Math.round(clevel/total*100)+'% of contacts',cls:'c-yellow'},
+    {label:'With Phone',val:withPhone,sub:'have phone numbers',cls:'c-orange'},
+    {label:'LinkedIn',val:withLI,sub:'have LI profiles',cls:'c-blue'},
+  ].map(s=>`<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.cls}">${s.val}</div><div class="stat-sub">${s.sub}</div></div>`).join('');
+}
+
+const COLORS=['#f97316','#38bdf8','#a78bfa','#34d399','#fbbf24','#f87171','#818cf8','#2dd4bf','#fb923c'];
+
+function counter(data,key){const c={};data.forEach(r=>{const v=(r[key]||'Unknown');c[v]=(c[v]||0)+1;});return c;}
+function topN(obj,n=8){return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n);}
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function buildCharts(data){
+  dc('tags');
+  const tagMap={'NDT/NDE/Inspection, Oil & Gas':'NDT + Oil & Gas','Oil & Gas':'Oil & Gas Only'};
+  const tagCount=counter(data,'tags');
+  const tagLabels=Object.keys(tagCount).map(k=>tagMap[k]||k);
+  charts['tags']=new Chart(document.getElementById('chartTags'),{type:'doughnut',data:{labels:tagLabels,datasets:[{data:Object.values(tagCount),backgroundColor:['#38bdf8','#f97316','#a78bfa'],borderColor:'#1c1f2e',borderWidth:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#7b7f9a',font:{size:11},boxWidth:12,padding:10}}}}});
+  dc('seniority');
+  const senE=topN(counter(data,'seniority'));
+  charts['seniority']=new Chart(document.getElementById('chartSeniority'),{type:'bar',data:{labels:senE.map(e=>e[0]),datasets:[{data:senE.map(e=>e[1]),backgroundColor:COLORS,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7b7f9a',font:{size:11}},grid:{color:'#272b3f'}},y:{ticks:{color:'#7b7f9a',font:{size:11}},grid:{display:false}}}}});
+  dc('revenue');
+  const revD=REV_ORDER.filter(r=>data.some(c=>c.revenue===r)).map(r=>({l:r,v:data.filter(c=>c.revenue===r).length}));
+  charts['revenue']=new Chart(document.getElementById('chartRevenue'),{type:'bar',data:{labels:revD.map(e=>e.l),datasets:[{data:revD.map(e=>e.v),backgroundColor:'#f97316',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7b7f9a',font:{size:9},maxRotation:35},grid:{color:'#272b3f'}},y:{ticks:{color:'#7b7f9a',font:{size:11}},grid:{color:'#272b3f'}}}}});
+  dc('cities');
+  const cityE=topN(counter(data,'city'),10);
+  charts['cities']=new Chart(document.getElementById('chartCities'),{type:'bar',data:{labels:cityE.map(e=>e[0]),datasets:[{data:cityE.map(e=>e[1]),backgroundColor:'#38bdf8',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7b7f9a',font:{size:11}},grid:{color:'#272b3f'}},y:{ticks:{color:'#7b7f9a',font:{size:11}},grid:{display:false}}}}});
+  dc('staff');
+  const staffOrder=['1 - 10 employees','11 - 50 employees','51 - 200 employees','201 - 500 employees','501 - 1,000 employees','1,001 - 5,000 employees','5,001 - 10,000 employees','10,001+ employees'];
+  const staffD=staffOrder.filter(s=>data.some(c=>c.staff===s)).map(s=>({l:s,v:data.filter(c=>c.staff===s).length}));
+  charts['staff']=new Chart(document.getElementById('chartStaff'),{type:'bar',data:{labels:staffD.map(e=>e.l),datasets:[{data:staffD.map(e=>e.v),backgroundColor:'#a78bfa',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7b7f9a',font:{size:9},maxRotation:35},grid:{color:'#272b3f'}},y:{ticks:{color:'#7b7f9a',font:{size:11}},grid:{color:'#272b3f'}}}}});
+}
+function applyFilters(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const tag=document.getElementById('filterTag').value;
+  const sen=document.getElementById('filterSeniority').value;
+  const city=document.getElementById('filterCity').value;
+  const rev=document.getElementById('filterRevenue').value;
+  const em=document.getElementById('filterEmail').value;
+  filtered=RAW_DATA.filter(r=>{
+    if(q&&![r.name,r.company,r.email,r.title,r.city].join(' ').toLowerCase().includes(q))return false;
+    if(tag&&r.tags!==tag)return false;
+    if(sen&&r.seniority!==sen)return false;
+    if(city&&r.city!==city)return false;
+    if(rev&&r.revenue!==rev)return false;
+    if(em&&r.emailValid!==em)return false;
+    return true;
+  });
+  document.getElementById('filterCount').textContent=filtered.length;
+  currentPage=1; sortData(); renderTable(); buildCharts(filtered);
+}
+
+function resetFilters(){
+  document.getElementById('searchInput').value='';
+  ['filterTag','filterSeniority','filterCity','filterRevenue','filterEmail'].forEach(id=>document.getElementById(id).value='');
+  applyFilters();
+}
+
+function sortTable(key){
+  if(sortKey===key)sortDir*=-1;else{sortKey=key;sortDir=1;}
+  document.querySelectorAll('thead th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
+  const cols=['name','title','company','tags','seniority','email','emailValid','city','revenue','linkedin'];
+  const idx=cols.indexOf(key);
+  if(idx>=0)document.querySelectorAll('thead th')[idx].classList.add(sortDir===1?'sort-asc':'sort-desc');
+  sortData();renderTable();
+}
+
+function sortData(){
+  filtered.sort((a,b)=>{
+    let av=a[sortKey]||'',bv=b[sortKey]||'';
+    if(sortKey==='revenue')return(REV_ORDER.indexOf(av)-REV_ORDER.indexOf(bv))*sortDir;
+    return av.localeCompare(bv)*sortDir;
+  });
+}
+
+function tagBadge(t){
+  if(!t)return'';
+  if(t.includes('NDT')&&t.includes('Oil'))return`<span class="badge b-both">NDT + Oil &amp; Gas</span>`;
+  if(t.includes('NDT'))return`<span class="badge b-ndt">NDT/Inspection</span>`;
+  return`<span class="badge b-og">Oil &amp; Gas</span>`;
+}
+
+function senBadge(s){
+  const m={'C-Level':'b-clevel','VP':'b-vp','Director':'b-director','Manager':'b-manager'};
+  return`<span class="badge ${m[s]||'b-other'}">${s||'—'}</span>`;
+}
+
+function emailBadge(v){
+  if(v==='valid')return`<span class="badge b-valid">✓</span>`;
+  if(v==='invalid')return`<span class="badge b-invalid">✗</span>`;
+  if(v==='accept all')return`<span class="badge b-acceptall">~</span>`;
+  return`<span style="color:var(--muted);font-size:11px">${v||'—'}</span>`;
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function renderTable(){
+  const start=(currentPage-1)*PAGE_SIZE;
+  const page=filtered.slice(start,start+PAGE_SIZE);
+  document.getElementById('tableBody').innerHTML=page.map((r,i)=>`
+    <tr onclick="openModal(${start+i})">
+      <td><div class="name-cell">${esc(r.name)||'—'}</div></td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${esc(r.title)||'—'}</td>
+      <td>${r.website?`<a class="company-link" href="https://${esc(r.website)}" target="_blank" onclick="event.stopPropagation()">${esc(r.company)}</a>`:esc(r.company)||'—'}</td>
+      <td>${tagBadge(r.tags)}</td>
+      <td>${senBadge(r.seniority)}</td>
+      <td>${r.email?`<a class="email-mono" href="mailto:${esc(r.email)}" onclick="event.stopPropagation()">${esc(r.email)}</a>`:'—'}</td>
+      <td>${emailBadge(r.emailValid)}</td>
+      <td style="white-space:nowrap">${esc(r.city)||'—'}</td>
+      <td style="font-size:12px">${esc(r.revenue)||'—'}</td>
+      <td>${r.linkedin?`<a class="li-link" href="${esc(r.linkedin)}" target="_blank" onclick="event.stopPropagation()">in</a>`:'—'}</td>
+    </tr>
+  `).join('');
+  renderPagination();
+}
+function renderPagination(){
+  const total=filtered.length,tp=Math.ceil(total/PAGE_SIZE);
+  const st=(currentPage-1)*PAGE_SIZE+1,e=Math.min(currentPage*PAGE_SIZE,total);
+  document.getElementById('pageInfo').textContent=`Showing ${st}–${e} of ${total}`;
+  const btns=document.getElementById('pageBtns');
+  let h=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  pageRange(currentPage,tp).forEach(p=>{
+    if(p==='...')h+=`<span style="padding:5px 4px;color:var(--muted)">…</span>`;
+    else h+=`<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  });
+  h+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===tp?'disabled':''}>›</button>`;
+  btns.innerHTML=h;
+}
+
+function pageRange(cur,tp){
+  if(tp<=7)return Array.from({length:tp},(_,i)=>i+1);
+  if(cur<=4)return[1,2,3,4,5,'...',tp];
+  if(cur>=tp-3)return[1,'...',tp-4,tp-3,tp-2,tp-1,tp];
+  return[1,'...',cur-1,cur,cur+1,'...',tp];
+}
+
+function goPage(p){
+  const tp=Math.ceil(filtered.length/PAGE_SIZE);
+  if(p<1||p>tp)return;
+  currentPage=p;
+  renderTable();
+  document.querySelector('.table-card').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function openModal(idx){
+  const r=filtered[idx];
+  const initials=(r.name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('modalBody').innerHTML=`
+    <div class="modal-top">
+      <div class="modal-avatar">${initials}</div>
+      <div>
+        <div class="modal-name">${esc(r.name)}</div>
+        <div class="modal-subtitle">${esc(r.title)||''} ${r.company?'· '+esc(r.company):''}</div>
+        <div class="modal-tags">${tagBadge(r.tags)} ${senBadge(r.seniority)}</div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Contact Info</div>
+      <div class="modal-grid">
+        <div class="mf"><div class="mf-label">Email</div><div class="mf-value">${r.email?`<a href="mailto:${esc(r.email)}">${esc(r.email)}</a>`:'—'} ${emailBadge(r.emailValid)}</div></div>
+        <div class="mf"><div class="mf-label">Phone</div><div class="mf-value">${esc(r.phone)||'—'}</div></div>
+        <div class="mf"><div class="mf-label">Location</div><div class="mf-value">${[r.city,r.state,'Canada'].filter(Boolean).join(', ')}</div></div>
+        <div class="mf"><div class="mf-label">Department</div><div class="mf-value">${esc(r.department)||'—'}</div></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Company</div>
+      <div class="modal-grid">
+        <div class="mf"><div class="mf-label">Company</div><div class="mf-value">${r.website?`<a href="https://${esc(r.website)}" target="_blank">${esc(r.company)}</a>`:esc(r.company)||'—'}</div></div>
+        <div class="mf"><div class="mf-label">Industry</div><div class="mf-value">${esc(r.industry)||'—'}</div></div>
+        <div class="mf"><div class="mf-label">Revenue</div><div class="mf-value">${esc(r.revenue)||'—'}</div></div>
+        <div class="mf"><div class="mf-label">Staff Size</div><div class="mf-value">${esc(r.staff)||'—'}</div></div>
+        <div class="mf"><div class="mf-label">Founded</div><div class="mf-value">${esc(r.founded)||'—'}</div></div>
+        <div class="mf"><div class="mf-label">Website</div><div class="mf-value">${r.website?`<a href="https://${esc(r.website)}" target="_blank">${esc(r.website)}</a>`:'—'}</div></div>
+      </div>
+    </div>
+    ${r.companyDesc?`<div class="modal-section"><div class="modal-section-title">About</div><div class="modal-desc">${esc(r.companyDesc)}${r.companyDesc.length>=300?'…':''}</div></div>`:''}
+    ${r.timeInRole||r.timeAtCompany?`
+    <div class="modal-section">
+      <div class="modal-section-title">Tenure</div>
+      <div class="modal-grid">
+        ${r.timeInRole?`<div class="mf"><div class="mf-label">Time in Role</div><div class="mf-value">${esc(r.timeInRole)}</div></div>`:''}
+        ${r.timeAtCompany?`<div class="mf"><div class="mf-label">Time at Company</div><div class="mf-value">${esc(r.timeAtCompany)}</div></div>`:''}
+      </div>
+    </div>`:''}
+    <div class="modal-actions">
+      ${r.email?`<a class="modal-btn mb-primary" href="mailto:${esc(r.email)}">✉ Email</a>`:''}
+      ${r.linkedin?`<a class="modal-btn mb-sec" href="${esc(r.linkedin)}" target="_blank">in LinkedIn</a>`:''}
+      ${r.companyLI?`<a class="modal-btn mb-sec" href="${esc(r.companyLI)}" target="_blank">🏢 Company</a>`:''}
+      ${r.website?`<a class="modal-btn mb-sec" href="https://${esc(r.website)}" target="_blank">🌐 Website</a>`:''}
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e){if(e.target.id==='modalOverlay')document.getElementById('modalOverlay').classList.remove('open');}
+function closeModalBtn(){document.getElementById('modalOverlay').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('modalOverlay').classList.remove('open');});
+
+function exportCSV(){
+  const cols=['name','title','company','tags','seniority','email','emailValid','phone','city','state','country','industry','revenue','staff','founded','website','linkedin','timeInRole','timeAtCompany'];
+  const lines=[cols.join(',')];
+  filtered.forEach(r=>lines.push(cols.map(c=>`"${(r[c]||'').replace(/"/g,'""')}"`).join(',')));
+  const blob=new Blob([lines.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='canada_ndt_oilgas_contacts.csv';a.click();
+}
+
+init();
+</script>
+</body>
+</html>
